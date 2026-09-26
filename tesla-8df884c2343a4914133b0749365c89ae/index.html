@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Tesla Smart Scheduler | The Whale 🐋</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      background-color: #0d1117;
+      color: #e6edf3;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .tesla-red { color: #e82127; }
+    .bg-tesla-red { background-color: #e82127; }
+    .border-tesla-red { border-color: #e82127; }
+    .glass-card {
+      background: rgba(22, 27, 34, 0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(48, 54, 61, 0.8);
+    }
+    input[type=range] {
+      accent-color: #e82127;
+    }
+    /* Day pill selection */
+    .day-pill.active {
+      background-color: #e82127;
+      color: white;
+      border-color: #e82127;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body class="min-h-screen pb-20">
+
+  <!-- Navigation / Header -->
+  <header class="sticky top-0 z-50 glass-card border-b border-gray-800 px-4 py-3 shadow-lg">
+    <div class="max-w-xl mx-auto flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-9 h-9 rounded-xl bg-red-600/20 border border-red-500/40 flex items-center justify-center text-red-500">
+          <i class="fa-solid fa-bolt text-lg"></i>
+        </div>
+        <div>
+          <h1 class="text-base font-bold tracking-tight text-white flex items-center gap-2">
+            The Whale <span class="text-sm">🐋</span>
+          </h1>
+          <p class="text-xs text-gray-400">Tesla Cloud Automator</p>
+        </div>
+      </div>
+      <div class="flex items-center space-x-2">
+        <button id="btn-settings" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 flex items-center gap-1.5 transition">
+          <i class="fa-solid fa-key text-[10px]"></i>
+          <span id="auth-status-text">Token</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="max-w-xl mx-auto px-4 pt-5 space-y-5">
+
+    <!-- Status Alert Banner -->
+    <div id="status-banner" class="hidden rounded-xl p-3.5 text-xs flex items-center justify-between">
+      <div class="flex items-center space-x-2">
+        <i id="status-icon" class="fa-solid fa-circle-check"></i>
+        <span id="status-msg">All systems operational</span>
+      </div>
+      <button onclick="dismissStatus()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+
+    <!-- Quick Action / Status Bar -->
+    <div class="glass-card rounded-2xl p-4 shadow-sm border border-gray-800/80">
+      <div class="flex items-center justify-between pb-3 border-b border-gray-800 text-xs">
+        <span class="text-gray-400 flex items-center gap-1.5">
+          <i class="fa-solid fa-satellite-dish text-green-400"></i> Cloud Scheduler: Active
+        </span>
+        <span class="text-gray-400">Timezone: <span class="text-gray-200 font-mono">Sydney (AEST)</span></span>
+      </div>
+      <div class="grid grid-cols-2 gap-2.5 pt-3">
+        <button onclick="triggerImmediateAction('charge_limit')" class="py-2.5 px-3 rounded-xl bg-gray-800/90 hover:bg-gray-700/90 border border-gray-700 text-xs font-semibold text-gray-200 flex items-center justify-center gap-2 transition active:scale-95">
+          <i class="fa-solid fa-bolt-lightning text-yellow-400"></i>
+          Update Limit Now
+        </button>
+        <button onclick="triggerImmediateAction('climate')" class="py-2.5 px-3 rounded-xl bg-gray-800/90 hover:bg-gray-700/90 border border-gray-700 text-xs font-semibold text-gray-200 flex items-center justify-center gap-2 transition active:scale-95">
+          <i class="fa-solid fa-fan text-blue-400"></i>
+          Turn AC On Now
+        </button>
+      </div>
+    </div>
+
+    <!-- Section 1: Weekly Charge Limit Configuration -->
+    <section class="glass-card rounded-2xl p-5 border border-gray-800/80 space-y-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-2.5">
+          <div class="w-7 h-7 rounded-lg bg-yellow-500/10 text-yellow-400 flex items-center justify-center text-sm">
+            <i class="fa-solid fa-battery-three-quarters"></i>
+          </div>
+          <div>
+            <h2 class="text-sm font-bold text-white">Daily Charge Limits</h2>
+            <p class="text-[11px] text-gray-400">Sets max charge % before home charging starts</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-1 bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1 text-xs">
+          <i class="fa-regular fa-clock text-gray-400 text-[10px]"></i>
+          <input type="time" id="charge-time" value="20:00" class="bg-transparent text-white font-mono text-xs focus:outline-none">
+        </div>
+      </div>
+
+      <!-- Quick Preset Buttons -->
+      <div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-[11px]">
+        <span class="text-gray-400 text-[10px] mr-1">Presets:</span>
+        <button onclick="applyPreset('standard')" class="px-2.5 py-1 rounded-md bg-gray-800 hover:bg-gray-700 border border-gray-700 text-gray-300 whitespace-nowrap">80% / 90% Weekend</button>
+        <button onclick="applyPreset('commuter')" class="px-2.5 py-1 rounded-md bg-gray-800 hover:bg-gray-700 border border-gray-700 text-gray-300 whitespace-nowrap">70% / 80% Weekend</button>
+        <button onclick="applyPreset('full')" class="px-2.5 py-1 rounded-md bg-gray-800 hover:bg-gray-700 border border-gray-700 text-gray-300 whitespace-nowrap">100% Roadtrip</button>
+      </div>
+
+      <!-- Day by Day Sliders -->
+      <div class="space-y-3 pt-1" id="days-container">
+        <!-- Rendered by JS -->
+      </div>
+    </section>
+
+    <!-- Section 2: AC / Climate Preconditioning -->
+    <section class="glass-card rounded-2xl p-5 border border-gray-800/80 space-y-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-2.5">
+          <div class="w-7 h-7 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center text-sm">
+            <i class="fa-solid fa-snowflake"></i>
+          </div>
+          <div>
+            <h2 class="text-sm font-bold text-white">AC Preconditioning</h2>
+            <p class="text-[11px] text-gray-400">Cools or warms car even when unplugged</p>
+          </div>
+        </div>
+        <!-- Toggle Switch -->
+        <label class="relative inline-flex items-center cursor-pointer">
+          <input type="checkbox" id="climate-enabled" class="sr-only peer" checked>
+          <div class="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+        </label>
+      </div>
+
+      <div id="climate-body" class="space-y-4 pt-1 transition">
+        <!-- Time & Target Temp -->
+        <div class="grid grid-cols-2 gap-3">
+          <div class="bg-gray-900/80 border border-gray-800 rounded-xl p-3">
+            <span class="text-[11px] text-gray-400 block mb-1">Departure Time</span>
+            <div class="flex items-center gap-2">
+              <i class="fa-regular fa-clock text-blue-400 text-xs"></i>
+              <input type="time" id="climate-time" value="17:15" class="bg-transparent text-white font-mono text-sm font-semibold focus:outline-none w-full">
+            </div>
+          </div>
+          <div class="bg-gray-900/80 border border-gray-800 rounded-xl p-3">
+            <span class="text-[11px] text-gray-400 block mb-1">Cabin Target Temp</span>
+            <div class="flex items-center justify-between">
+              <span id="temp-display" class="font-mono text-sm font-semibold text-white">21.0 °C</span>
+              <div class="flex items-center space-x-1">
+                <button onclick="adjustTemp(-0.5)" class="w-6 h-6 rounded bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs flex items-center justify-center">-</button>
+                <button onclick="adjustTemp(0.5)" class="w-6 h-6 rounded bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs flex items-center justify-center">+</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Days Selector -->
+        <div>
+          <span class="text-[11px] text-gray-400 block mb-2">Repeat On Days</span>
+          <div class="grid grid-cols-7 gap-1.5" id="climate-days-pills">
+            <button type="button" onclick="toggleClimateDay('Monday')" data-day="Monday" class="day-pill active py-2 rounded-xl border border-gray-700 text-xs text-center transition">M</button>
+            <button type="button" onclick="toggleClimateDay('Tuesday')" data-day="Tuesday" class="day-pill active py-2 rounded-xl border border-gray-700 text-xs text-center transition">T</button>
+            <button type="button" onclick="toggleClimateDay('Wednesday')" data-day="Wednesday" class="day-pill active py-2 rounded-xl border border-gray-700 text-xs text-center transition">W</button>
+            <button type="button" onclick="toggleClimateDay('Thursday')" data-day="Thursday" class="day-pill active py-2 rounded-xl border border-gray-700 text-xs text-center transition">T</button>
+            <button type="button" onclick="toggleClimateDay('Friday')" data-day="Friday" class="day-pill active py-2 rounded-xl border border-gray-700 text-xs text-center transition">F</button>
+            <button type="button" onclick="toggleClimateDay('Saturday')" data-day="Saturday" class="day-pill py-2 rounded-xl border border-gray-700 text-xs text-center text-gray-400 transition">S</button>
+            <button type="button" onclick="toggleClimateDay('Sunday')" data-day="Sunday" class="day-pill py-2 rounded-xl border border-gray-700 text-xs text-center text-gray-400 transition">S</button>
+          </div>
+        </div>
+
+        <!-- Battery Cutoff Info -->
+        <div class="bg-gray-900/60 rounded-xl p-3 border border-gray-800 flex items-center justify-between text-xs">
+          <span class="text-gray-400 flex items-center gap-2">
+            <i class="fa-solid fa-shield-halved text-emerald-400"></i> Battery Safety Cutoff
+          </span>
+          <span class="font-semibold text-gray-200">≥ 20% Required</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Save Button Container -->
+    <div class="pt-2">
+      <button id="btn-save" onclick="saveConfiguration()" class="w-full py-3.5 px-4 rounded-xl bg-tesla-red hover:bg-red-700 active:scale-[0.99] text-white font-bold text-sm shadow-lg shadow-red-900/30 flex items-center justify-center gap-2 transition">
+        <i class="fa-solid fa-cloud-arrow-up"></i>
+        <span>Save & Sync to Cloud</span>
+      </button>
+      <p class="text-center text-[11px] text-gray-500 mt-2">Updates take effect immediately on next cloud trigger.</p>
+    </div>
+
+  </main>
+
+  <!-- GitHub Credentials Modal -->
+  <div id="modal-auth" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="glass-card rounded-2xl max-w-sm w-full p-5 border border-gray-700 space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between">
+        <h3 class="text-sm font-bold text-white flex items-center gap-2">
+          <i class="fa-brands fa-github text-base"></i> GitHub Access Token
+        </h3>
+        <button onclick="closeAuthModal()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <p class="text-xs text-gray-300">
+        Your Personal Access Token is saved only in this browser's <span class="font-mono text-gray-400">localStorage</span> to save settings and trigger test actions.
+      </p>
+      <div>
+        <label class="block text-[11px] text-gray-400 mb-1">GitHub Personal Access Token (classic)</label>
+        <input type="password" id="input-token" placeholder="ghp_..." class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-red-500">
+      </div>
+      <div class="flex gap-2 pt-2">
+        <button onclick="saveToken()" class="flex-1 py-2 rounded-xl bg-tesla-red hover:bg-red-700 text-xs font-semibold text-white">Save Token</button>
+        <button onclick="closeAuthModal()" class="px-3 py-2 rounded-xl bg-gray-800 text-xs text-gray-300">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const REPO_OWNER = "ofisher";
+    const REPO_NAME = "tesla-scheduler";
+    const CONFIG_PATH = "schedule_config.json";
+
+    const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+    let currentConfig = {
+      timezone: "Australia/Sydney",
+      charge_schedule: {
+        update_time: "20:00",
+        limits: {
+          "Monday": 80, "Tuesday": 80, "Wednesday": 80, "Thursday": 80,
+          "Friday": 80, "Saturday": 90, "Sunday": 90
+        }
+      },
+      climate_schedule: {
+        enabled: true,
+        start_time: "17:15",
+        days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+        target_temp_c: 21.0,
+        battery_min_soc: 20
+      }
+    };
+
+    // Initialize UI on Load
+    document.addEventListener("DOMContentLoaded", () => {
+      // Check for token in URL query (e.g. ?token=ghp_...)
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlToken = urlParams.get("token");
+      if (urlToken) {
+        localStorage.setItem("tesla_gh_pat", urlToken);
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+
+      renderDaySliders();
+      updateAuthStatusUI();
+      loadConfigFromGitHub();
+
+      document.getElementById("btn-settings").addEventListener("click", openAuthModal);
+      document.getElementById("climate-enabled").addEventListener("change", (e) => {
+        const body = document.getElementById("climate-body");
+        body.style.opacity = e.target.checked ? "1" : "0.4";
+        body.style.pointerEvents = e.target.checked ? "auto" : "none";
+      });
+    });
+
+    function getAuthToken() {
+      return localStorage.getItem("tesla_gh_pat") || "";
+    }
+
+    function updateAuthStatusUI() {
+      const token = getAuthToken();
+      const statusText = document.getElementById("auth-status-text");
+      if (token) {
+        statusText.textContent = "Synced";
+        statusText.classList.add("text-emerald-400");
+      } else {
+        statusText.textContent = "Connect";
+        statusText.classList.remove("text-emerald-400");
+      }
+    }
+
+    function openAuthModal() {
+      document.getElementById("input-token").value = getAuthToken();
+      document.getElementById("modal-auth").classList.remove("hidden");
+    }
+
+    function closeAuthModal() {
+      document.getElementById("modal-auth").classList.add("hidden");
+    }
+
+    function saveToken() {
+      const val = document.getElementById("input-token").value.trim();
+      if (val) {
+        localStorage.setItem("tesla_gh_pat", val);
+        showStatus("GitHub access token saved.", "success");
+      } else {
+        localStorage.removeItem("tesla_gh_pat");
+      }
+      closeAuthModal();
+      updateAuthStatusUI();
+      loadConfigFromGitHub();
+    }
+
+    // Render 7-day sliders
+    function renderDaySliders() {
+      const container = document.getElementById("days-container");
+      container.innerHTML = "";
+
+      DAYS.forEach(day => {
+        const val = currentConfig.charge_schedule.limits[day] || 80;
+        const isWeekend = day === "Saturday" || day === "Sunday";
+
+        const div = document.createElement("div");
+        div.className = "flex items-center justify-between gap-3 text-xs bg-gray-900/50 p-2.5 rounded-xl border border-gray-800/60";
+        div.innerHTML = `
+          <span class="w-20 font-medium ${isWeekend ? 'text-yellow-400' : 'text-gray-300'}">${day}</span>
+          <input type="range" min="50" max="100" step="1" value="${val}"
+            oninput="onSliderChange('${day}', this.value)"
+            class="flex-1 h-1.5 bg-gray-700 rounded-lg cursor-pointer">
+          <span id="badge-${day}" class="w-10 text-right font-mono font-bold ${val >= 90 ? 'text-yellow-400' : 'text-emerald-400'}">${val}%</span>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function onSliderChange(day, val) {
+      currentConfig.charge_schedule.limits[day] = parseInt(val);
+      const badge = document.getElementById(`badge-${day}`);
+      badge.textContent = `${val}%`;
+      badge.className = `w-10 text-right font-mono font-bold ${val >= 90 ? 'text-yellow-400' : 'text-emerald-400'}`;
+    }
+
+    function applyPreset(type) {
+      if (type === 'standard') {
+        DAYS.forEach(d => currentConfig.charge_schedule.limits[d] = (d === 'Saturday' || d === 'Sunday') ? 90 : 80);
+      } else if (type === 'commuter') {
+        DAYS.forEach(d => currentConfig.charge_schedule.limits[d] = (d === 'Saturday' || d === 'Sunday') ? 80 : 70);
+      } else if (type === 'full') {
+        DAYS.forEach(d => currentConfig.charge_schedule.limits[d] = 100);
+      }
+      renderDaySliders();
+    }
+
+    function toggleClimateDay(day) {
+      const days = currentConfig.climate_schedule.days;
+      const idx = days.indexOf(day);
+      if (idx > -1) {
+        days.splice(idx, 1);
+      } else {
+        days.push(day);
+      }
+      updateClimatePillUI();
+    }
+
+    function updateClimatePillUI() {
+      const activeDays = currentConfig.climate_schedule.days;
+      document.querySelectorAll("#climate-days-pills button").forEach(btn => {
+        const d = btn.getAttribute("data-day");
+        if (activeDays.includes(d)) {
+          btn.className = "day-pill active py-2 rounded-xl border border-tesla-red text-xs text-center transition";
+        } else {
+          btn.className = "day-pill py-2 rounded-xl border border-gray-700 text-xs text-center text-gray-400 transition";
+        }
+      });
+    }
+
+    function adjustTemp(delta) {
+      let t = currentConfig.climate_schedule.target_temp_c + delta;
+      t = Math.max(16.0, Math.min(28.0, t));
+      currentConfig.climate_schedule.target_temp_c = parseFloat(t.toFixed(1));
+      document.getElementById("temp-display").textContent = `${currentConfig.climate_schedule.target_temp_c.toFixed(1)} °C`;
+    }
+
+    // GitHub API Sync
+    let fileSha = "";
+
+    async function loadConfigFromGitHub() {
+      const token = getAuthToken();
+      if (!token) return;
+
+      try {
+        const res = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${CONFIG_PATH}`, {
+          headers: {
+            "Authorization": `token ${token}`,
+            "Accept": "application/vnd.github+json"
+          }
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          fileSha = data.sha;
+          const content = decodeURIComponent(escape(atob(data.content)));
+          currentConfig = JSON.parse(content);
+          applyConfigToUI();
+          showStatus("Synced latest schedule from cloud", "success");
+        }
+      } catch (e) {
+        console.error("Failed to load config from GitHub:", e);
+      }
+    }
+
+    function applyConfigToUI() {
+      document.getElementById("charge-time").value = currentConfig.charge_schedule.update_time || "20:00";
+      renderDaySliders();
+
+      const climate = currentConfig.climate_schedule;
+      document.getElementById("climate-enabled").checked = climate.enabled;
+      document.getElementById("climate-time").value = climate.start_time || "17:15";
+      document.getElementById("temp-display").textContent = `${climate.target_temp_c.toFixed(1)} °C`;
+      updateClimatePillUI();
+    }
+
+    async function saveConfiguration() {
+      const token = getAuthToken();
+      if (!token) {
+        openAuthModal();
+        return;
+      }
+
+      // Collect UI values
+      currentConfig.charge_schedule.update_time = document.getElementById("charge-time").value;
+      currentConfig.climate_schedule.enabled = document.getElementById("climate-enabled").checked;
+      currentConfig.climate_schedule.start_time = document.getElementById("climate-time").value;
+
+      const btn = document.getElementById("btn-save");
+      const originalText = btn.innerHTML;
+      btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Syncing with Cloud...`;
+      btn.disabled = true;
+
+      try {
+        // If fileSha not loaded, fetch it
+        if (!fileSha) {
+          const getRes = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${CONFIG_PATH}`, {
+            headers: { "Authorization": `token ${token}`, "Accept": "application/vnd.github+json" }
+          });
+          if (getRes.ok) {
+            const data = await getRes.json();
+            fileSha = data.sha;
+          }
+        }
+
+        const jsonString = JSON.stringify(currentConfig, null, 2);
+        const encodedContent = btoa(unescape(encodeURIComponent(jsonString)));
+
+        const payload = {
+          message: "Update schedule configuration via Web Dashboard",
+          content: encodedContent,
+          sha: fileSha
+        };
+
+        const putRes = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${CONFIG_PATH}`, {
+          method: "PUT",
+          headers: {
+            "Authorization": `token ${token}`,
+            "Accept": "application/vnd.github+json",
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (putRes.ok) {
+          const resData = await putRes.json();
+          fileSha = resData.content.sha;
+          showStatus("Schedule successfully updated and synced!", "success");
+        } else {
+          const err = await putRes.json();
+          showStatus(`Failed to save: ${err.message || 'Error'}`, "error");
+        }
+      } catch (e) {
+        showStatus(`Error saving: ${e.message}`, "error");
+      } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      }
+    }
+
+    async function triggerImmediateAction(action) {
+      const token = getAuthToken();
+      if (!token) {
+        openAuthModal();
+        return;
+      }
+
+      showStatus(`Triggering ${action === 'charge_limit' ? 'Charge Limit Update' : 'AC Preconditioning'}...`, "info");
+
+      try {
+        const res = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/actions/workflows/schedule.yml/dispatches`, {
+          method: "POST",
+          headers: {
+            "Authorization": `token ${token}`,
+            "Accept": "application/vnd.github+json",
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            ref: "main",
+            inputs: { action: action, dry_run: false }
+          })
+        });
+
+        if (res.ok) {
+          showStatus(`Command dispatched to "The Whale 🐋" via cloud runner!`, "success");
+        } else {
+          showStatus(`Failed to trigger: Status ${res.status}`, "error");
+        }
+      } catch (e) {
+        showStatus(`Dispatch error: ${e.message}`, "error");
+      }
+    }
+
+    function showStatus(msg, type) {
+      const banner = document.getElementById("status-banner");
+      const msgEl = document.getElementById("status-msg");
+      const icon = document.getElementById("status-icon");
+
+      banner.classList.remove("hidden", "bg-emerald-950/80", "text-emerald-300", "border-emerald-800",
+                              "bg-red-950/80", "text-red-300", "border-red-800",
+                              "bg-blue-950/80", "text-blue-300", "border-blue-800");
+
+      if (type === "success") {
+        banner.classList.add("bg-emerald-950/80", "text-emerald-300", "border", "border-emerald-800");
+        icon.className = "fa-solid fa-circle-check";
+      } else if (type === "error") {
+        banner.classList.add("bg-red-950/80", "text-red-300", "border", "border-red-800");
+        icon.className = "fa-solid fa-triangle-exclamation";
+      } else {
+        banner.classList.add("bg-blue-950/80", "text-blue-300", "border", "border-blue-800");
+        icon.className = "fa-solid fa-circle-info";
+      }
+
+      msgEl.textContent = msg;
+    }
+
+    function dismissStatus() {
+      document.getElementById("status-banner").classList.add("hidden");
+    }
+  </script>
+</body>
+</html>
