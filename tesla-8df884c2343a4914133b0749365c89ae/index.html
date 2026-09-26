@@ -32,11 +32,15 @@
       border-color: #e82127;
       font-weight: 600;
     }
+    input[type="time"]::-webkit-calendar-picker-indicator {
+      filter: invert(1);
+      cursor: pointer;
+    }
   </style>
 </head>
-<body class="min-h-screen pb-20">
+<body class="min-h-screen pb-24">
 
-  <!-- Navigation / Header -->
+  <!-- Header -->
   <header class="sticky top-0 z-50 glass-card border-b border-gray-800 px-4 py-3 shadow-lg">
     <div class="max-w-xl mx-auto flex items-center justify-between">
       <div class="flex items-center space-x-3">
@@ -59,7 +63,7 @@
     </div>
   </header>
 
-  <!-- Main Content Container -->
+  <!-- Main Container -->
   <main class="max-w-xl mx-auto px-4 pt-5 space-y-5">
 
     <!-- Status Alert Banner -->
@@ -91,7 +95,7 @@
       </div>
     </div>
 
-    <!-- Section 1: Weekly Charge Limit Configuration -->
+    <!-- Section 1: Weekly Charge Limits -->
     <section class="glass-card rounded-2xl p-5 border border-gray-800/80 space-y-4">
       <div class="flex items-center justify-between">
         <div class="flex items-center space-x-2.5">
@@ -103,9 +107,17 @@
             <p class="text-[11px] text-gray-400">Sets max charge % before home charging starts</p>
           </div>
         </div>
-        <div class="flex items-center gap-1 bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1 text-xs">
-          <i class="fa-regular fa-clock text-gray-400 text-[10px]"></i>
-          <input type="time" id="charge-time" value="20:00" class="bg-transparent text-white font-mono text-xs focus:outline-none">
+      </div>
+
+      <!-- Time of Day Setting for Charge Limit -->
+      <div class="bg-gray-900/90 border border-gray-800 rounded-xl p-3.5 flex items-center justify-between">
+        <div>
+          <span class="text-xs font-semibold text-gray-200 block">Daily Update Time</span>
+          <span class="text-[11px] text-gray-400">What time of day to update the limit slider</span>
+        </div>
+        <div class="flex items-center gap-2 bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5">
+          <i class="fa-regular fa-clock text-yellow-400 text-xs"></i>
+          <input type="time" id="charge-time" value="20:00" class="bg-transparent text-white font-mono text-xs font-bold focus:outline-none cursor-pointer">
         </div>
       </div>
 
@@ -123,7 +135,7 @@
       </div>
     </section>
 
-    <!-- Section 2: AC / Climate Preconditioning -->
+    <!-- Section 2: AC / Climate Preconditioning (Multiple Recurring Timers) -->
     <section class="glass-card rounded-2xl p-5 border border-gray-800/80 space-y-4">
       <div class="flex items-center justify-between">
         <div class="flex items-center space-x-2.5">
@@ -131,60 +143,28 @@
             <i class="fa-solid fa-snowflake"></i>
           </div>
           <div>
-            <h2 class="text-sm font-bold text-white">AC Preconditioning</h2>
-            <p class="text-[11px] text-gray-400">Cools or warms car even when unplugged</p>
+            <h2 class="text-sm font-bold text-white">AC Preconditioning Timers</h2>
+            <p class="text-[11px] text-gray-400">Multiple recurring timers (works unplugged)</p>
           </div>
         </div>
-        <!-- Toggle Switch -->
-        <label class="relative inline-flex items-center cursor-pointer">
-          <input type="checkbox" id="climate-enabled" class="sr-only peer" checked>
-          <div class="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
-        </label>
+        <!-- Add Schedule Button -->
+        <button onclick="addNewClimateSchedule()" class="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm active:scale-95 transition">
+          <i class="fa-solid fa-plus text-[10px]"></i>
+          <span>Add Timer</span>
+        </button>
       </div>
 
-      <div id="climate-body" class="space-y-4 pt-1 transition">
-        <!-- Time & Target Temp -->
-        <div class="grid grid-cols-2 gap-3">
-          <div class="bg-gray-900/80 border border-gray-800 rounded-xl p-3">
-            <span class="text-[11px] text-gray-400 block mb-1">Departure Time</span>
-            <div class="flex items-center gap-2">
-              <i class="fa-regular fa-clock text-blue-400 text-xs"></i>
-              <input type="time" id="climate-time" value="17:15" class="bg-transparent text-white font-mono text-sm font-semibold focus:outline-none w-full">
-            </div>
-          </div>
-          <div class="bg-gray-900/80 border border-gray-800 rounded-xl p-3">
-            <span class="text-[11px] text-gray-400 block mb-1">Cabin Target Temp</span>
-            <div class="flex items-center justify-between">
-              <span id="temp-display" class="font-mono text-sm font-semibold text-white">21.0 °C</span>
-              <div class="flex items-center space-x-1">
-                <button onclick="adjustTemp(-0.5)" class="w-6 h-6 rounded bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs flex items-center justify-center">-</button>
-                <button onclick="adjustTemp(0.5)" class="w-6 h-6 rounded bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs flex items-center justify-center">+</button>
-              </div>
-            </div>
-          </div>
-        </div>
+      <!-- Schedules List Container -->
+      <div id="climate-schedules-list" class="space-y-3.5 pt-1">
+        <!-- Rendered dynamically by JS -->
+      </div>
 
-        <!-- Days Selector -->
-        <div>
-          <span class="text-[11px] text-gray-400 block mb-2">Repeat On Days</span>
-          <div class="grid grid-cols-7 gap-1.5" id="climate-days-pills">
-            <button type="button" onclick="toggleClimateDay('Monday')" data-day="Monday" class="day-pill active py-2 rounded-xl border border-gray-700 text-xs text-center transition">M</button>
-            <button type="button" onclick="toggleClimateDay('Tuesday')" data-day="Tuesday" class="day-pill active py-2 rounded-xl border border-gray-700 text-xs text-center transition">T</button>
-            <button type="button" onclick="toggleClimateDay('Wednesday')" data-day="Wednesday" class="day-pill active py-2 rounded-xl border border-gray-700 text-xs text-center transition">W</button>
-            <button type="button" onclick="toggleClimateDay('Thursday')" data-day="Thursday" class="day-pill active py-2 rounded-xl border border-gray-700 text-xs text-center transition">T</button>
-            <button type="button" onclick="toggleClimateDay('Friday')" data-day="Friday" class="day-pill active py-2 rounded-xl border border-gray-700 text-xs text-center transition">F</button>
-            <button type="button" onclick="toggleClimateDay('Saturday')" data-day="Saturday" class="day-pill py-2 rounded-xl border border-gray-700 text-xs text-center text-gray-400 transition">S</button>
-            <button type="button" onclick="toggleClimateDay('Sunday')" data-day="Sunday" class="day-pill py-2 rounded-xl border border-gray-700 text-xs text-center text-gray-400 transition">S</button>
-          </div>
-        </div>
-
-        <!-- Battery Cutoff Info -->
-        <div class="bg-gray-900/60 rounded-xl p-3 border border-gray-800 flex items-center justify-between text-xs">
-          <span class="text-gray-400 flex items-center gap-2">
-            <i class="fa-solid fa-shield-halved text-emerald-400"></i> Battery Safety Cutoff
-          </span>
-          <span class="font-semibold text-gray-200">≥ 20% Required</span>
-        </div>
+      <!-- Battery Safety Cutoff -->
+      <div class="bg-gray-900/60 rounded-xl p-3 border border-gray-800 flex items-center justify-between text-xs">
+        <span class="text-gray-400 flex items-center gap-2">
+          <i class="fa-solid fa-shield-halved text-emerald-400"></i> Battery Safety Cutoff
+        </span>
+        <span class="font-semibold text-gray-200">≥ 20% Required</span>
       </div>
     </section>
 
@@ -194,7 +174,7 @@
         <i class="fa-solid fa-cloud-arrow-up"></i>
         <span>Save & Sync to Cloud</span>
       </button>
-      <p class="text-center text-[11px] text-gray-500 mt-2">Updates take effect immediately on next cloud trigger.</p>
+      <p class="text-center text-[11px] text-gray-500 mt-2">Schedules and cron triggers sync directly to GitHub Actions.</p>
     </div>
 
   </main>
@@ -209,11 +189,11 @@
         <button onclick="closeAuthModal()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <p class="text-xs text-gray-300">
-        Your Personal Access Token is saved only in this browser's <span class="font-mono text-gray-400">localStorage</span> to save settings and trigger test actions.
+        Your Personal Access Token is saved in this browser's <span class="font-mono text-gray-400">localStorage</span> to sync settings with GitHub.
       </p>
       <div>
-        <label class="block text-[11px] text-gray-400 mb-1">GitHub Personal Access Token (classic)</label>
-        <input type="password" id="input-token" placeholder="ghp_..." class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-red-500">
+        <label class="block text-[11px] text-gray-400 mb-1">GitHub Personal Access Token</label>
+        <input type="password" id="input-token" placeholder="ghp_..." class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-red-500 font-mono">
       </div>
       <div class="flex gap-2 pt-2">
         <button onclick="saveToken()" class="flex-1 py-2 rounded-xl bg-tesla-red hover:bg-red-700 text-xs font-semibold text-white">Save Token</button>
@@ -226,8 +206,11 @@
     const REPO_OWNER = "ofisher";
     const REPO_NAME = "tesla-scheduler";
     const CONFIG_PATH = "schedule_config.json";
+    const WORKFLOW_PATH = ".github/workflows/schedule.yml";
 
     const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+    const SHORT_DAYS = { "Monday": "M", "Tuesday": "T", "Wednesday": "W", "Thursday": "T", "Friday": "F", "Saturday": "S", "Sunday": "S" };
+
     let currentConfig = {
       timezone: "Australia/Sydney",
       charge_schedule: {
@@ -237,18 +220,32 @@
           "Friday": 80, "Saturday": 90, "Sunday": 90
         }
       },
-      climate_schedule: {
-        enabled: true,
-        start_time: "17:15",
-        days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-        target_temp_c: 21.0,
-        battery_min_soc: 20
-      }
+      climate_schedules: [
+        {
+          id: "sched-1",
+          name: "Morning Departure",
+          enabled: true,
+          time: "07:45",
+          days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+          target_temp_c: 21.0
+        },
+        {
+          id: "sched-2",
+          name: "Evening Return",
+          enabled: true,
+          time: "17:15",
+          days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+          target_temp_c: 21.0
+        }
+      ],
+      battery_min_soc: 20
     };
 
-    // Initialize UI on Load
+    let fileSha = "";
+    let workflowSha = "";
+
     document.addEventListener("DOMContentLoaded", () => {
-      // Check for token in URL query (e.g. ?token=ghp_...)
+      // Check query token
       const urlParams = new URLSearchParams(window.location.search);
       const urlToken = urlParams.get("token");
       if (urlToken) {
@@ -257,15 +254,11 @@
       }
 
       renderDaySliders();
+      renderClimateSchedules();
       updateAuthStatusUI();
       loadConfigFromGitHub();
 
       document.getElementById("btn-settings").addEventListener("click", openAuthModal);
-      document.getElementById("climate-enabled").addEventListener("change", (e) => {
-        const body = document.getElementById("climate-body");
-        body.style.opacity = e.target.checked ? "1" : "0.4";
-        body.style.pointerEvents = e.target.checked ? "auto" : "none";
-      });
     });
 
     function getAuthToken() {
@@ -306,7 +299,9 @@
       loadConfigFromGitHub();
     }
 
-    // Render 7-day sliders
+    // -------------------------------------------------------------------------
+    // Render Charge Limits
+    // -------------------------------------------------------------------------
     function renderDaySliders() {
       const container = document.getElementById("days-container");
       container.innerHTML = "";
@@ -346,39 +341,145 @@
       renderDaySliders();
     }
 
-    function toggleClimateDay(day) {
-      const days = currentConfig.climate_schedule.days;
-      const idx = days.indexOf(day);
-      if (idx > -1) {
-        days.splice(idx, 1);
-      } else {
-        days.push(day);
-      }
-      updateClimatePillUI();
-    }
+    // -------------------------------------------------------------------------
+    // Render Multiple Climate Schedules
+    // -------------------------------------------------------------------------
+    function renderClimateSchedules() {
+      const container = document.getElementById("climate-schedules-list");
+      container.innerHTML = "";
 
-    function updateClimatePillUI() {
-      const activeDays = currentConfig.climate_schedule.days;
-      document.querySelectorAll("#climate-days-pills button").forEach(btn => {
-        const d = btn.getAttribute("data-day");
-        if (activeDays.includes(d)) {
-          btn.className = "day-pill active py-2 rounded-xl border border-tesla-red text-xs text-center transition";
-        } else {
-          btn.className = "day-pill py-2 rounded-xl border border-gray-700 text-xs text-center text-gray-400 transition";
-        }
+      if (!currentConfig.climate_schedules || currentConfig.climate_schedules.length === 0) {
+        container.innerHTML = `
+          <div class="p-4 rounded-xl border border-dashed border-gray-800 text-center text-xs text-gray-500">
+            No recurring AC timers configured. Click "Add Timer" above to create one.
+          </div>
+        `;
+        return;
+      }
+
+      currentConfig.climate_schedules.forEach((sched, index) => {
+        const card = document.createElement("div");
+        card.className = "bg-gray-900/80 border border-gray-800 rounded-xl p-3.5 space-y-3 transition";
+        card.id = `sched-card-${sched.id}`;
+
+        let daysHtml = "";
+        DAYS.forEach(d => {
+          const isActive = sched.days.includes(d);
+          daysHtml += `
+            <button type="button" onclick="toggleScheduleDay(${index}, '${d}')"
+              class="day-pill ${isActive ? 'active' : ''} py-1.5 rounded-lg border border-gray-700 text-xs text-center text-gray-300 font-medium transition">
+              ${SHORT_DAYS[d]}
+            </button>
+          `;
+        });
+
+        card.innerHTML = `
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <input type="text" value="${escapeHtml(sched.name)}" onchange="updateScheduleName(${index}, this.value)"
+                class="bg-transparent text-sm font-semibold text-white focus:outline-none focus:border-b border-gray-600 px-1 w-40" placeholder="Timer Name">
+            </div>
+            <div class="flex items-center gap-2.5">
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" ${sched.enabled ? 'checked' : ''} onchange="toggleScheduleActive(${index}, this.checked)" class="sr-only peer">
+                <div class="w-8 h-4 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-blue-600"></div>
+              </label>
+              <button onclick="deleteClimateSchedule(${index})" class="text-gray-500 hover:text-red-400 text-xs p-1"><i class="fa-regular fa-trash-can"></i></button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 pt-1">
+            <div class="bg-gray-800/80 border border-gray-700/80 rounded-lg px-3 py-2 flex items-center justify-between">
+              <span class="text-[11px] text-gray-400">Departure:</span>
+              <input type="time" value="${sched.time}" onchange="updateScheduleTime(${index}, this.value)"
+                class="bg-transparent text-white font-mono text-sm font-bold focus:outline-none cursor-pointer">
+            </div>
+            <div class="bg-gray-800/80 border border-gray-700/80 rounded-lg px-3 py-2 flex items-center justify-between">
+              <span class="text-[11px] text-gray-400">Target Temp:</span>
+              <div class="flex items-center space-x-1.5">
+                <button onclick="adjustScheduleTemp(${index}, -0.5)" class="w-5 h-5 rounded bg-gray-700 text-gray-300 text-xs flex items-center justify-center">-</button>
+                <span class="text-xs font-mono font-semibold text-white">${sched.target_temp_c ? sched.target_temp_c.toFixed(1) : '21.0'}°</span>
+                <button onclick="adjustScheduleTemp(${index}, 0.5)" class="w-5 h-5 rounded bg-gray-700 text-gray-300 text-xs flex items-center justify-center">+</button>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <span class="text-[10px] text-gray-500 block mb-1">Active Days:</span>
+            <div class="grid grid-cols-7 gap-1">
+              ${daysHtml}
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
       });
     }
 
-    function adjustTemp(delta) {
-      let t = currentConfig.climate_schedule.target_temp_c + delta;
-      t = Math.max(16.0, Math.min(28.0, t));
-      currentConfig.climate_schedule.target_temp_c = parseFloat(t.toFixed(1));
-      document.getElementById("temp-display").textContent = `${currentConfig.climate_schedule.target_temp_c.toFixed(1)} °C`;
+    function addNewClimateSchedule() {
+      const newId = "sched-" + Date.now();
+      currentConfig.climate_schedules.push({
+        id: newId,
+        name: "New Timer",
+        enabled: true,
+        time: "17:15",
+        days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+        target_temp_c: 21.0
+      });
+      renderClimateSchedules();
     }
 
-    // GitHub API Sync
-    let fileSha = "";
+    function deleteClimateSchedule(index) {
+      currentConfig.climate_schedules.splice(index, 1);
+      renderClimateSchedules();
+    }
 
+    function updateScheduleName(index, val) {
+      if (currentConfig.climate_schedules[index]) {
+        currentConfig.climate_schedules[index].name = val.trim() || "Timer";
+      }
+    }
+
+    function updateScheduleTime(index, val) {
+      if (currentConfig.climate_schedules[index] && val) {
+        currentConfig.climate_schedules[index].time = val;
+      }
+    }
+
+    function toggleScheduleActive(index, isChecked) {
+      if (currentConfig.climate_schedules[index]) {
+        currentConfig.climate_schedules[index].enabled = isChecked;
+      }
+    }
+
+    function toggleScheduleDay(index, day) {
+      const sched = currentConfig.climate_schedules[index];
+      if (!sched) return;
+      const pos = sched.days.indexOf(day);
+      if (pos > -1) {
+        sched.days.splice(pos, 1);
+      } else {
+        sched.days.push(day);
+      }
+      renderClimateSchedules();
+    }
+
+    function adjustScheduleTemp(index, delta) {
+      const sched = currentConfig.climate_schedules[index];
+      if (!sched) return;
+      let cur = sched.target_temp_c || 21.0;
+      cur += delta;
+      cur = Math.max(16.0, Math.min(28.0, cur));
+      sched.target_temp_c = parseFloat(cur.toFixed(1));
+      renderClimateSchedules();
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    // -------------------------------------------------------------------------
+    // Cloud Sync (GitHub API)
+    // -------------------------------------------------------------------------
     async function loadConfigFromGitHub() {
       const token = getAuthToken();
       if (!token) return;
@@ -395,24 +496,31 @@
           const data = await res.json();
           fileSha = data.sha;
           const content = decodeURIComponent(escape(atob(data.content)));
-          currentConfig = JSON.parse(content);
-          applyConfigToUI();
+          const parsed = JSON.parse(content);
+
+          // Support backward compatibility
+          if (parsed.charge_schedule) currentConfig.charge_schedule = parsed.charge_schedule;
+          if (parsed.climate_schedules) {
+            currentConfig.climate_schedules = parsed.climate_schedules;
+          } else if (parsed.climate_schedule) {
+            currentConfig.climate_schedules = [{
+              id: "legacy",
+              name: "Scheduled Preconditioning",
+              enabled: parsed.climate_schedule.enabled !== false,
+              time: parsed.climate_schedule.start_time || "17:15",
+              days: parsed.climate_schedule.days || ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+              target_temp_c: parsed.climate_schedule.target_temp_c || 21.0
+            }];
+          }
+
+          document.getElementById("charge-time").value = currentConfig.charge_schedule.update_time || "20:00";
+          renderDaySliders();
+          renderClimateSchedules();
           showStatus("Synced latest schedule from cloud", "success");
         }
       } catch (e) {
         console.error("Failed to load config from GitHub:", e);
       }
-    }
-
-    function applyConfigToUI() {
-      document.getElementById("charge-time").value = currentConfig.charge_schedule.update_time || "20:00";
-      renderDaySliders();
-
-      const climate = currentConfig.climate_schedule;
-      document.getElementById("climate-enabled").checked = climate.enabled;
-      document.getElementById("climate-time").value = climate.start_time || "17:15";
-      document.getElementById("temp-display").textContent = `${climate.target_temp_c.toFixed(1)} °C`;
-      updateClimatePillUI();
     }
 
     async function saveConfiguration() {
@@ -422,10 +530,7 @@
         return;
       }
 
-      // Collect UI values
       currentConfig.charge_schedule.update_time = document.getElementById("charge-time").value;
-      currentConfig.climate_schedule.enabled = document.getElementById("climate-enabled").checked;
-      currentConfig.climate_schedule.start_time = document.getElementById("climate-time").value;
 
       const btn = document.getElementById("btn-save");
       const originalText = btn.innerHTML;
@@ -433,7 +538,6 @@
       btn.disabled = true;
 
       try {
-        // If fileSha not loaded, fetch it
         if (!fileSha) {
           const getRes = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${CONFIG_PATH}`, {
             headers: { "Authorization": `token ${token}`, "Accept": "application/vnd.github+json" }
@@ -448,7 +552,7 @@
         const encodedContent = btoa(unescape(encodeURIComponent(jsonString)));
 
         const payload = {
-          message: "Update schedule configuration via Web Dashboard",
+          message: "Update multi-timer schedule configuration",
           content: encodedContent,
           sha: fileSha
         };
@@ -466,6 +570,10 @@
         if (putRes.ok) {
           const resData = await putRes.json();
           fileSha = resData.content.sha;
+          
+          // Also update GitHub workflow cron schedule to match user's custom times
+          syncWorkflowCronTriggers(token);
+
           showStatus("Schedule successfully updated and synced!", "success");
         } else {
           const err = await putRes.json();
@@ -476,6 +584,60 @@
       } finally {
         btn.innerHTML = originalText;
         btn.disabled = false;
+      }
+    }
+
+    // Convert Sydney local time (AEST UTC+10) to UTC cron expressions
+    function localTimeToUtcParts(timeStr) {
+      const [h, m] = timeStr.split(":").map(Number);
+      let utcH = h - 10; // Sydney AEST UTC+10
+      if (utcH < 0) utcH += 24;
+      return { minute: m, hour: utcH };
+    }
+
+    async function syncWorkflowCronTriggers(token) {
+      try {
+        // Fetch current workflow
+        const res = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${WORKFLOW_PATH}`, {
+          headers: { "Authorization": `token ${token}`, "Accept": "application/vnd.github+json" }
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        workflowSha = data.sha;
+        let content = decodeURIComponent(escape(atob(data.content)));
+
+        // Generate crons
+        const chargeUtc = localTimeToUtcParts(currentConfig.charge_schedule.update_time || "20:00");
+        let cronList = [
+          `    # Run nightly for Charge Limit adjustment (${currentConfig.charge_schedule.update_time} AEST)\n    - cron: '${chargeUtc.minute} ${chargeUtc.hour} * * *'`
+        ];
+
+        currentConfig.climate_schedules.filter(s => s.enabled).forEach(s => {
+          const cUtc = localTimeToUtcParts(s.time);
+          cronList.push(`    # AC: ${s.name} (${s.time} AEST)\n    - cron: '${cUtc.minute} ${cUtc.hour} * * *'`);
+        });
+
+        const newScheduleBlock = "  schedule:\n" + cronList.join("\n");
+        content = content.replace(/  schedule:[\s\S]*?(?=  workflow_dispatch:)/, newScheduleBlock + "\n");
+
+        const updatePayload = {
+          message: "Sync workflow cron triggers with custom schedule times",
+          content: btoa(unescape(encodeURIComponent(content))),
+          sha: workflowSha
+        };
+
+        await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${WORKFLOW_PATH}`, {
+          method: "PUT",
+          headers: {
+            "Authorization": `token ${token}`,
+            "Accept": "application/vnd.github+json",
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(updatePayload)
+        });
+        console.log("Synced workflow cron triggers with GitHub Actions.");
+      } catch (e) {
+        console.warn("Could not auto-update workflow cron:", e);
       }
     }
 
