@@ -25,7 +25,6 @@
     input[type=range] {
       accent-color: #e82127;
     }
-    /* Day pill selection */
     .day-pill.active {
       background-color: #e82127;
       color: white;
@@ -113,7 +112,7 @@
       <div class="bg-gray-900/90 border border-gray-800 rounded-xl p-3.5 flex items-center justify-between">
         <div>
           <span class="text-xs font-semibold text-gray-200 block">Daily Update Time</span>
-          <span class="text-[11px] text-gray-400">What time of day to update the limit slider</span>
+          <span class="text-[11px] text-gray-400">Updates charge slider daily at this time</span>
         </div>
         <div class="flex items-center gap-2 bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5">
           <i class="fa-regular fa-clock text-yellow-400 text-xs"></i>
@@ -135,7 +134,7 @@
       </div>
     </section>
 
-    <!-- Section 2: AC / Climate Preconditioning (Multiple Recurring Timers) -->
+    <!-- Section 2: AC Preconditioning (Multiple Timers + Smart Heat Detection) -->
     <section class="glass-card rounded-2xl p-5 border border-gray-800/80 space-y-4">
       <div class="flex items-center justify-between">
         <div class="flex items-center space-x-2.5">
@@ -144,18 +143,27 @@
           </div>
           <div>
             <h2 class="text-sm font-bold text-white">AC Preconditioning Timers</h2>
-            <p class="text-[11px] text-gray-400">Multiple recurring timers (works unplugged)</p>
+            <p class="text-[11px] text-gray-400">Turns on at exact start time (auto shuts off after 30 mins)</p>
           </div>
         </div>
-        <!-- Add Schedule Button -->
+        <!-- Add Timer Button -->
         <button onclick="addNewClimateSchedule()" class="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm active:scale-95 transition">
           <i class="fa-solid fa-plus text-[10px]"></i>
           <span>Add Timer</span>
         </button>
       </div>
 
+      <!-- Information Card -->
+      <div class="bg-blue-950/30 border border-blue-800/40 rounded-xl p-3 text-[11px] text-blue-300 flex items-start gap-2.5">
+        <i class="fa-solid fa-circle-info text-blue-400 mt-0.5"></i>
+        <div>
+          <span class="font-semibold text-blue-200">How AC Timers Work:</span>
+          The AC turns on at your chosen <b>Start Time</b> and runs for <b>up to 30 minutes</b> (or until you get in). If you want the car cold by 5:15 PM, set your start time to 5:05 PM!
+        </div>
+      </div>
+
       <!-- Schedules List Container -->
-      <div id="climate-schedules-list" class="space-y-3.5 pt-1">
+      <div id="climate-schedules-list" class="space-y-4 pt-1">
         <!-- Rendered dynamically by JS -->
       </div>
 
@@ -225,17 +233,23 @@
           id: "sched-1",
           name: "Morning Departure",
           enabled: true,
-          time: "07:45",
+          time: "07:35",
           days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-          target_temp_c: 21.0
+          temp_mode: "smart",
+          target_temp_c: 21.0,
+          hot_threshold_c: 28.0,
+          hot_target_temp_c: 18.5
         },
         {
           id: "sched-2",
           name: "Evening Return",
           enabled: true,
-          time: "17:15",
+          time: "17:05",
           days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-          target_temp_c: 21.0
+          temp_mode: "smart",
+          target_temp_c: 21.0,
+          hot_threshold_c: 28.0,
+          hot_target_temp_c: 18.0
         }
       ],
       battery_min_soc: 20
@@ -342,7 +356,7 @@
     }
 
     // -------------------------------------------------------------------------
-    // Render Multiple Climate Schedules
+    // Render Multiple Climate Schedules with Smart Hot-Cabin Temperature
     // -------------------------------------------------------------------------
     function renderClimateSchedules() {
       const container = document.getElementById("climate-schedules-list");
@@ -350,7 +364,7 @@
 
       if (!currentConfig.climate_schedules || currentConfig.climate_schedules.length === 0) {
         container.innerHTML = `
-          <div class="p-4 rounded-xl border border-dashed border-gray-800 text-center text-xs text-gray-500">
+          <div class="p-5 rounded-xl border border-dashed border-gray-800 text-center text-xs text-gray-500">
             No recurring AC timers configured. Click "Add Timer" above to create one.
           </div>
         `;
@@ -358,8 +372,9 @@
       }
 
       currentConfig.climate_schedules.forEach((sched, index) => {
+        const isSmart = sched.temp_mode !== "fixed";
         const card = document.createElement("div");
-        card.className = "bg-gray-900/80 border border-gray-800 rounded-xl p-3.5 space-y-3 transition";
+        card.className = "bg-gray-900/85 border border-gray-800 rounded-xl p-4 space-y-3.5 transition";
         card.id = `sched-card-${sched.id}`;
 
         let daysHtml = "";
@@ -374,38 +389,103 @@
         });
 
         card.innerHTML = `
-          <div class="flex items-center justify-between">
+          <div class="flex items-center justify-between border-b border-gray-800/80 pb-2.5">
             <div class="flex items-center gap-2">
+              <i class="fa-solid fa-stopwatch text-blue-400 text-xs"></i>
               <input type="text" value="${escapeHtml(sched.name)}" onchange="updateScheduleName(${index}, this.value)"
-                class="bg-transparent text-sm font-semibold text-white focus:outline-none focus:border-b border-gray-600 px-1 w-40" placeholder="Timer Name">
+                class="bg-transparent text-sm font-semibold text-white focus:outline-none focus:border-b border-gray-600 px-1 w-44" placeholder="Timer Name">
             </div>
-            <div class="flex items-center gap-2.5">
+            <div class="flex items-center gap-3">
               <label class="relative inline-flex items-center cursor-pointer">
                 <input type="checkbox" ${sched.enabled ? 'checked' : ''} onchange="toggleScheduleActive(${index}, this.checked)" class="sr-only peer">
                 <div class="w-8 h-4 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-blue-600"></div>
               </label>
-              <button onclick="deleteClimateSchedule(${index})" class="text-gray-500 hover:text-red-400 text-xs p-1"><i class="fa-regular fa-trash-can"></i></button>
+              <button onclick="deleteClimateSchedule(${index})" class="text-gray-500 hover:text-red-400 text-xs p-1" title="Delete timer">
+                <i class="fa-regular fa-trash-can"></i>
+              </button>
             </div>
           </div>
 
-          <div class="grid grid-cols-2 gap-2 pt-1">
-            <div class="bg-gray-800/80 border border-gray-700/80 rounded-lg px-3 py-2 flex items-center justify-between">
-              <span class="text-[11px] text-gray-400">Departure:</span>
-              <input type="time" value="${sched.time}" onchange="updateScheduleTime(${index}, this.value)"
-                class="bg-transparent text-white font-mono text-sm font-bold focus:outline-none cursor-pointer">
+          <!-- AC Start Time -->
+          <div class="bg-gray-800/70 border border-gray-700/60 rounded-xl p-3 flex items-center justify-between">
+            <div>
+              <span class="text-xs font-semibold text-gray-200 block flex items-center gap-1.5">
+                <i class="fa-regular fa-clock text-blue-400"></i> AC Start Time
+              </span>
+              <span class="text-[10px] text-gray-400">Turns on at this exact time (runs for 30m)</span>
             </div>
-            <div class="bg-gray-800/80 border border-gray-700/80 rounded-lg px-3 py-2 flex items-center justify-between">
-              <span class="text-[11px] text-gray-400">Target Temp:</span>
-              <div class="flex items-center space-x-1.5">
-                <button onclick="adjustScheduleTemp(${index}, -0.5)" class="w-5 h-5 rounded bg-gray-700 text-gray-300 text-xs flex items-center justify-center">-</button>
-                <span class="text-xs font-mono font-semibold text-white">${sched.target_temp_c ? sched.target_temp_c.toFixed(1) : '21.0'}°</span>
-                <button onclick="adjustScheduleTemp(${index}, 0.5)" class="w-5 h-5 rounded bg-gray-700 text-gray-300 text-xs flex items-center justify-center">+</button>
+            <div class="bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1.5">
+              <input type="time" value="${sched.time}" onchange="updateScheduleTime(${index}, this.value)"
+                class="bg-transparent text-white font-mono text-xs font-bold focus:outline-none cursor-pointer">
+            </div>
+          </div>
+
+          <!-- Temperature Control: Smart vs Fixed -->
+          <div class="bg-gray-800/50 border border-gray-700/50 rounded-xl p-3 space-y-2.5">
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-gray-300 font-medium">Temperature Mode</span>
+              <div class="flex bg-gray-900 rounded-lg p-0.5 border border-gray-700 text-[11px]">
+                <button type="button" onclick="setTempMode(${index}, 'smart')"
+                  class="px-2.5 py-1 rounded-md transition ${isSmart ? 'bg-blue-600 text-white font-semibold' : 'text-gray-400 hover:text-white'}">
+                  <i class="fa-solid fa-wand-magic-sparkles text-[10px] mr-1"></i>Smart Heat Auto
+                </button>
+                <button type="button" onclick="setTempMode(${index}, 'fixed')"
+                  class="px-2.5 py-1 rounded-md transition ${!isSmart ? 'bg-blue-600 text-white font-semibold' : 'text-gray-400 hover:text-white'}">
+                  Fixed Temp
+                </button>
               </div>
             </div>
+
+            <!-- Smart Heat Configuration -->
+            ${isSmart ? `
+              <div class="space-y-2 pt-1 border-t border-gray-700/60 text-xs">
+                <div class="flex items-center justify-between">
+                  <span class="text-gray-400 text-[11px]">Normal Target Temp:</span>
+                  <div class="flex items-center space-x-1.5">
+                    <button onclick="adjustScheduleTemp(${index}, 'target_temp_c', -0.5)" class="w-5 h-5 rounded bg-gray-700 text-gray-200 text-xs flex items-center justify-center">-</button>
+                    <span class="font-mono font-semibold text-white w-12 text-center">${(sched.target_temp_c || 21.0).toFixed(1)}°C</span>
+                    <button onclick="adjustScheduleTemp(${index}, 'target_temp_c', 0.5)" class="w-5 h-5 rounded bg-gray-700 text-gray-200 text-xs flex items-center justify-center">+</button>
+                  </div>
+                </div>
+
+                <div class="bg-amber-950/30 border border-amber-800/40 rounded-lg p-2.5 space-y-1.5">
+                  <div class="flex items-center justify-between">
+                    <span class="text-amber-300 text-[11px] font-medium flex items-center gap-1.5">
+                      <i class="fa-solid fa-temperature-arrow-up text-amber-400"></i> If Cabin Is Hot (≥):
+                    </span>
+                    <div class="flex items-center space-x-1.5">
+                      <button onclick="adjustScheduleTemp(${index}, 'hot_threshold_c', -1.0)" class="w-5 h-5 rounded bg-gray-800 text-amber-200 text-xs flex items-center justify-center">-</button>
+                      <span class="font-mono font-bold text-amber-300 w-12 text-center">${(sched.hot_threshold_c || 28.0).toFixed(0)}°C</span>
+                      <button onclick="adjustScheduleTemp(${index}, 'hot_threshold_c', 1.0)" class="w-5 h-5 rounded bg-gray-800 text-amber-200 text-xs flex items-center justify-center">+</button>
+                    </div>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-cyan-300 text-[11px] font-medium flex items-center gap-1.5">
+                      <i class="fa-solid fa-snowflake text-cyan-400"></i> Automatically Cool To:
+                    </span>
+                    <div class="flex items-center space-x-1.5">
+                      <button onclick="adjustScheduleTemp(${index}, 'hot_target_temp_c', -0.5)" class="w-5 h-5 rounded bg-gray-800 text-cyan-200 text-xs flex items-center justify-center">-</button>
+                      <span class="font-mono font-bold text-cyan-300 w-12 text-center">${(sched.hot_target_temp_c || 18.5).toFixed(1)}°C</span>
+                      <button onclick="adjustScheduleTemp(${index}, 'hot_target_temp_c', 0.5)" class="w-5 h-5 rounded bg-gray-800 text-cyan-200 text-xs flex items-center justify-center">+</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ` : `
+              <div class="flex items-center justify-between pt-1 border-t border-gray-700/60 text-xs">
+                <span class="text-gray-400">Target Temp:</span>
+                <div class="flex items-center space-x-1.5">
+                  <button onclick="adjustScheduleTemp(${index}, 'target_temp_c', -0.5)" class="w-6 h-6 rounded bg-gray-700 text-gray-200 text-xs flex items-center justify-center">-</button>
+                  <span class="font-mono font-semibold text-white w-14 text-center">${(sched.target_temp_c || 21.0).toFixed(1)}°C</span>
+                  <button onclick="adjustScheduleTemp(${index}, 'target_temp_c', 0.5)" class="w-6 h-6 rounded bg-gray-700 text-gray-200 text-xs flex items-center justify-center">+</button>
+                </div>
+              </div>
+            `}
           </div>
 
+          <!-- Active Days Selection -->
           <div>
-            <span class="text-[10px] text-gray-500 block mb-1">Active Days:</span>
+            <span class="text-[10px] text-gray-400 block mb-1">Active Days:</span>
             <div class="grid grid-cols-7 gap-1">
               ${daysHtml}
             </div>
@@ -419,11 +499,14 @@
       const newId = "sched-" + Date.now();
       currentConfig.climate_schedules.push({
         id: newId,
-        name: "New Timer",
+        name: "New AC Timer",
         enabled: true,
-        time: "17:15",
+        time: "17:05",
         days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-        target_temp_c: 21.0
+        temp_mode: "smart",
+        target_temp_c: 21.0,
+        hot_threshold_c: 28.0,
+        hot_target_temp_c: 18.0
       });
       renderClimateSchedules();
     }
@@ -451,6 +534,13 @@
       }
     }
 
+    function setTempMode(index, mode) {
+      if (currentConfig.climate_schedules[index]) {
+        currentConfig.climate_schedules[index].temp_mode = mode;
+        renderClimateSchedules();
+      }
+    }
+
     function toggleScheduleDay(index, day) {
       const sched = currentConfig.climate_schedules[index];
       if (!sched) return;
@@ -463,13 +553,13 @@
       renderClimateSchedules();
     }
 
-    function adjustScheduleTemp(index, delta) {
+    function adjustScheduleTemp(index, field, delta) {
       const sched = currentConfig.climate_schedules[index];
       if (!sched) return;
-      let cur = sched.target_temp_c || 21.0;
+      let cur = sched[field] !== undefined ? sched[field] : (field === 'hot_threshold_c' ? 28.0 : 21.0);
       cur += delta;
-      cur = Math.max(16.0, Math.min(28.0, cur));
-      sched.target_temp_c = parseFloat(cur.toFixed(1));
+      cur = Math.max(16.0, Math.min(35.0, cur));
+      sched[field] = parseFloat(cur.toFixed(1));
       renderClimateSchedules();
     }
 
@@ -498,7 +588,6 @@
           const content = decodeURIComponent(escape(atob(data.content)));
           const parsed = JSON.parse(content);
 
-          // Support backward compatibility
           if (parsed.charge_schedule) currentConfig.charge_schedule = parsed.charge_schedule;
           if (parsed.climate_schedules) {
             currentConfig.climate_schedules = parsed.climate_schedules;
@@ -507,9 +596,12 @@
               id: "legacy",
               name: "Scheduled Preconditioning",
               enabled: parsed.climate_schedule.enabled !== false,
-              time: parsed.climate_schedule.start_time || "17:15",
+              time: parsed.climate_schedule.start_time || "17:05",
               days: parsed.climate_schedule.days || ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-              target_temp_c: parsed.climate_schedule.target_temp_c || 21.0
+              temp_mode: "smart",
+              target_temp_c: parsed.climate_schedule.target_temp_c || 21.0,
+              hot_threshold_c: 28.0,
+              hot_target_temp_c: 18.5
             }];
           }
 
@@ -552,7 +644,7 @@
         const encodedContent = btoa(unescape(encodeURIComponent(jsonString)));
 
         const payload = {
-          message: "Update multi-timer schedule configuration",
+          message: "Update multi-timer schedule and smart temperature configuration",
           content: encodedContent,
           sha: fileSha
         };
@@ -597,7 +689,6 @@
 
     async function syncWorkflowCronTriggers(token) {
       try {
-        // Fetch current workflow
         const res = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${WORKFLOW_PATH}`, {
           headers: { "Authorization": `token ${token}`, "Accept": "application/vnd.github+json" }
         });
@@ -606,7 +697,6 @@
         workflowSha = data.sha;
         let content = decodeURIComponent(escape(atob(data.content)));
 
-        // Generate crons
         const chargeUtc = localTimeToUtcParts(currentConfig.charge_schedule.update_time || "20:00");
         let cronList = [
           `    # Run nightly for Charge Limit adjustment (${currentConfig.charge_schedule.update_time} AEST)\n    - cron: '${chargeUtc.minute} ${chargeUtc.hour} * * *'`
