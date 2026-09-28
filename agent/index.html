@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connecting to Home Agent...</title>
+  <style>
+    body {
+      background: #0f172a;
+      color: #f8fafc;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      text-align: center;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    .spinner {
+      width: 44px;
+      height: 44px;
+      border: 4px solid rgba(255,255,255,0.1);
+      border-top-color: #38bdf8;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 20px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    h2 { font-weight: 500; font-size: 1.25rem; margin: 0 0 8px 0; }
+    p { color: #94a3b8; font-size: 0.95rem; margin: 0; }
+    a { color: #38bdf8; text-decoration: none; margin-top: 15px; display: inline-block; font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <div class="spinner"></div>
+  <h2>Connecting to Home Agent...</h2>
+  <p>Locating active Dell laptop tunnel</p>
+  <a id="fallback" style="display:none;" href="#">Click here to open directly</a>
+
+  <script>
+    const TOPIC_URL = "https://ntfy.sh/ofisher_dell_tunnel_url_secret_928172/json?poll=1";
+    
+    fetch(TOPIC_URL)
+      .then(res => res.json())
+      .then(data => {
+        let target = (data.message || "").trim();
+        if (target.startsWith("https://")) {
+          const search = window.location.search || "";
+          const hash = window.location.hash || "";
+          window.location.replace(target + search + hash);
+        } else {
+          showFallback();
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        showFallback();
+      });
+
+    function showFallback() {
+      document.querySelector(".spinner").style.display = "none";
+      document.querySelector("h2").innerText = "Agent Offline or Starting Up";
+      document.querySelector("p").innerText = "Please wait a moment if the laptop was just rebooted.";
+    }
+  </script>
+</body>
+</html>
