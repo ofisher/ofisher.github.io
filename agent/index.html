@@ -44,10 +44,23 @@
     const TOPIC_URL = "https://ntfy.sh/ofisher_dell_tunnel_url_secret_928172/json?poll=1";
     
     fetch(TOPIC_URL)
-      .then(res => res.json())
-      .then(data => {
-        let target = (data.message || "").trim();
-        if (target.startsWith("https://")) {
+      .then(res => res.text())
+      .then(text => {
+        const lines = text.trim().split("\n").filter(Boolean);
+        let target = null;
+        let maxTime = 0;
+        
+        for (const line of lines) {
+          try {
+            const item = JSON.parse(line);
+            if (item.time && item.time >= maxTime && item.message && item.message.startsWith("https://")) {
+              maxTime = item.time;
+              target = item.message.trim();
+            }
+          } catch (e) {}
+        }
+        
+        if (target) {
           const search = window.location.search || "";
           const hash = window.location.hash || "";
           window.location.replace(target + search + hash);
