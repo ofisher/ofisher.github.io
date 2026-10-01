@@ -646,7 +646,15 @@
         const payload = {
           message: "Update multi-timer schedule and smart temperature configuration",
           content: encodedContent,
-          sha: fileSha
+          sha: fileSha,
+          committer: {
+            name: "Oliver Fisher",
+            email: "o.fisher@gmail.com"
+          },
+          author: {
+            name: "Oliver Fisher",
+            email: "o.fisher@gmail.com"
+          }
         };
 
         const putRes = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${CONFIG_PATH}`, {
@@ -713,7 +721,15 @@
         const updatePayload = {
           message: "Sync workflow cron triggers with custom schedule times",
           content: btoa(unescape(encodeURIComponent(content))),
-          sha: workflowSha
+          sha: workflowSha,
+          committer: {
+            name: "Oliver Fisher",
+            email: "o.fisher@gmail.com"
+          },
+          author: {
+            name: "Oliver Fisher",
+            email: "o.fisher@gmail.com"
+          }
         };
 
         await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${WORKFLOW_PATH}`, {
