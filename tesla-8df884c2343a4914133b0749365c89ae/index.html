@@ -37,7 +37,7 @@
     }
   </style>
 </head>
-<body class="min-h-screen pb-24">
+<body class="min-h-screen pb-16">
 
   <!-- Header -->
   <header class="sticky top-0 z-50 glass-card border-b border-gray-800 px-4 py-3 shadow-lg">
@@ -54,6 +54,12 @@
         </div>
       </div>
       <div class="flex items-center space-x-2">
+        <!-- Real-Time Auto-Save / Cloud Sync Status Badge -->
+        <div id="cloud-sync-badge" class="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-emerald-950/60 text-emerald-400 border border-emerald-800/60 flex items-center gap-1.5 transition shadow-sm select-none">
+          <i id="cloud-sync-icon" class="fa-solid fa-cloud-check text-[11px]"></i>
+          <span id="cloud-sync-text">Saved</span>
+        </div>
+
         <button id="btn-settings" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 flex items-center gap-1.5 transition">
           <i class="fa-solid fa-key text-[10px]"></i>
           <span id="auth-status-text">Token</span>
@@ -67,18 +73,18 @@
 
     <!-- Status Alert Banner -->
     <div id="status-banner" class="hidden rounded-xl p-3.5 text-xs flex items-center justify-between">
-      <div class="flex items-center space-x-2">
-        <i id="status-icon" class="fa-solid fa-circle-check"></i>
-        <span id="status-msg">All systems operational</span>
+      <div class="flex items-center space-x-2.5">
+        <i id="status-icon" class="fa-solid fa-circle-check text-sm"></i>
+        <span id="status-msg" class="leading-relaxed">All systems operational</span>
       </div>
-      <button onclick="dismissStatus()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+      <button onclick="dismissStatus()" class="text-gray-400 hover:text-white ml-2"><i class="fa-solid fa-xmark"></i></button>
     </div>
 
     <!-- Quick Action / Status Bar -->
     <div class="glass-card rounded-2xl p-4 shadow-sm border border-gray-800/80">
       <div class="flex items-center justify-between pb-3 border-b border-gray-800 text-xs">
         <span class="text-gray-400 flex items-center gap-1.5">
-          <i class="fa-solid fa-satellite-dish text-green-400"></i> Cloud Scheduler: Active
+          <i class="fa-solid fa-satellite-dish text-green-400"></i> Auto-Sync: Active
         </span>
         <span class="text-gray-400">Timezone: <span class="text-gray-200 font-mono">Sydney (AEST)</span></span>
       </div>
@@ -103,7 +109,7 @@
           </div>
           <div>
             <h2 class="text-sm font-bold text-white">Daily Charge Limits</h2>
-            <p class="text-[11px] text-gray-400">Sets max charge % before home charging starts</p>
+            <p class="text-[11px] text-gray-400">Editing today immediately commands the car</p>
           </div>
         </div>
       </div>
@@ -116,16 +122,16 @@
         </div>
         <div class="flex items-center gap-2 bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5">
           <i class="fa-regular fa-clock text-yellow-400 text-xs"></i>
-          <input type="time" id="charge-time" value="20:00" class="bg-transparent text-white font-mono text-xs font-bold focus:outline-none cursor-pointer">
+          <input type="time" id="charge-time" value="20:00" onchange="onChargeTimeChange(this.value)" class="bg-transparent text-white font-mono text-xs font-bold focus:outline-none cursor-pointer">
         </div>
       </div>
 
       <!-- Quick Preset Buttons -->
       <div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-[11px]">
         <span class="text-gray-400 text-[10px] mr-1">Presets:</span>
-        <button onclick="applyPreset('standard')" class="px-2.5 py-1 rounded-md bg-gray-800 hover:bg-gray-700 border border-gray-700 text-gray-300 whitespace-nowrap">80% / 90% Weekend</button>
-        <button onclick="applyPreset('commuter')" class="px-2.5 py-1 rounded-md bg-gray-800 hover:bg-gray-700 border border-gray-700 text-gray-300 whitespace-nowrap">70% / 80% Weekend</button>
-        <button onclick="applyPreset('full')" class="px-2.5 py-1 rounded-md bg-gray-800 hover:bg-gray-700 border border-gray-700 text-gray-300 whitespace-nowrap">100% Roadtrip</button>
+        <button onclick="applyPreset('standard')" class="px-2.5 py-1 rounded-md bg-gray-800 hover:bg-gray-700 border border-gray-700 text-gray-300 whitespace-nowrap transition active:scale-95">80% / 90% Weekend</button>
+        <button onclick="applyPreset('commuter')" class="px-2.5 py-1 rounded-md bg-gray-800 hover:bg-gray-700 border border-gray-700 text-gray-300 whitespace-nowrap transition active:scale-95">70% / 80% Weekend</button>
+        <button onclick="applyPreset('full')" class="px-2.5 py-1 rounded-md bg-gray-800 hover:bg-gray-700 border border-gray-700 text-gray-300 whitespace-nowrap transition active:scale-95">100% Roadtrip</button>
       </div>
 
       <!-- Day by Day Sliders -->
@@ -134,7 +140,7 @@
       </div>
     </section>
 
-    <!-- Section 2: AC Preconditioning (Multiple Timers + Smart Heat Detection) -->
+    <!-- Section 2: AC Preconditioning (Multiple Timers + Multi-Tier Heat Rules) -->
     <section class="glass-card rounded-2xl p-5 border border-gray-800/80 space-y-4">
       <div class="flex items-center justify-between">
         <div class="flex items-center space-x-2.5">
@@ -143,7 +149,7 @@
           </div>
           <div>
             <h2 class="text-sm font-bold text-white">AC Preconditioning Timers</h2>
-            <p class="text-[11px] text-gray-400">Turns on at exact start time (auto shuts off after 30 mins)</p>
+            <p class="text-[11px] text-gray-400">Multiple weekly timers with multi-threshold heat cooling</p>
           </div>
         </div>
         <!-- Add Timer Button -->
@@ -158,7 +164,7 @@
         <i class="fa-solid fa-circle-info text-blue-400 mt-0.5"></i>
         <div>
           <span class="font-semibold text-blue-200">How AC Timers Work:</span>
-          The AC turns on at your chosen <b>Start Time</b> and runs for <b>up to 30 minutes</b> (or until you get in). If you want the car cold by 5:15 PM, set your start time to 5:05 PM!
+          The AC turns on at your chosen <b>Start Time</b> and runs for <b>up to 30 minutes</b> (or until you drive). If you want the car cold by 5:15 PM, set your start time to 5:05 PM!
         </div>
       </div>
 
@@ -176,13 +182,10 @@
       </div>
     </section>
 
-    <!-- Save Button Container -->
-    <div class="pt-2">
-      <button id="btn-save" onclick="saveConfiguration()" class="w-full py-3.5 px-4 rounded-xl bg-tesla-red hover:bg-red-700 active:scale-[0.99] text-white font-bold text-sm shadow-lg shadow-red-900/30 flex items-center justify-center gap-2 transition">
-        <i class="fa-solid fa-cloud-arrow-up"></i>
-        <span>Save & Sync to Cloud</span>
-      </button>
-      <p class="text-center text-[11px] text-gray-500 mt-2">Schedules and cron triggers sync directly to GitHub Actions.</p>
+    <!-- Footer Auto-Sync Info Indicator -->
+    <div class="pt-3 pb-8 text-center text-xs text-gray-500 flex items-center justify-center gap-2">
+      <i class="fa-solid fa-cloud-check text-emerald-500"></i>
+      <span>Auto-sync enabled: all edits are immediately saved and synced to the cloud.</span>
     </div>
 
   </main>
@@ -197,7 +200,7 @@
         <button onclick="closeAuthModal()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <p class="text-xs text-gray-300">
-        Your Personal Access Token is saved in this browser's <span class="font-mono text-gray-400">localStorage</span> to sync settings with GitHub.
+        Your Personal Access Token is saved securely in this browser's <span class="font-mono text-gray-400">localStorage</span> to auto-sync schedule updates.
       </p>
       <div>
         <label class="block text-[11px] text-gray-400 mb-1">GitHub Personal Access Token</label>
@@ -237,19 +240,10 @@
           days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
           temp_mode: "smart",
           target_temp_c: 21.0,
-          hot_threshold_c: 28.0,
-          hot_target_temp_c: 18.5
-        },
-        {
-          id: "sched-2",
-          name: "Evening Return",
-          enabled: true,
-          time: "17:05",
-          days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-          temp_mode: "smart",
-          target_temp_c: 21.0,
-          hot_threshold_c: 28.0,
-          hot_target_temp_c: 18.0
+          temp_rules: [
+            { threshold_c: 28.0, target_temp_c: 19.5 },
+            { threshold_c: 33.0, target_temp_c: 18.0 }
+          ]
         }
       ],
       battery_min_soc: 20
@@ -257,6 +251,16 @@
 
     let fileSha = "";
     let workflowSha = "";
+
+    // Auto-Save Management State
+    let autoSaveTimer = null;
+    let isSaving = false;
+    let pendingSave = false;
+
+    // Immediate Today Charge Dispatch State
+    let lastDispatchedTodayLimit = null;
+    let isDispatchingToday = false;
+    let pendingTodayDispatchLimit = null;
 
     document.addEventListener("DOMContentLoaded", () => {
       // Check query token
@@ -314,22 +318,81 @@
     }
 
     // -------------------------------------------------------------------------
+    // Timezone Helper: Get Day in Australia/Sydney
+    // -------------------------------------------------------------------------
+    function getSydneyToday() {
+      try {
+        return new Intl.DateTimeFormat('en-US', {
+          weekday: 'long',
+          timeZone: currentConfig.timezone || 'Australia/Sydney'
+        }).format(new Date());
+      } catch (e) {
+        const d = new Date();
+        return DAYS[(d.getDay() + 6) % 7];
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // Cloud Auto-Sync Status Indicator
+    // -------------------------------------------------------------------------
+    function setSyncStatus(state, text) {
+      const badge = document.getElementById("cloud-sync-badge");
+      const icon = document.getElementById("cloud-sync-icon");
+      const textEl = document.getElementById("cloud-sync-text");
+      if (!badge || !icon || !textEl) return;
+
+      badge.className = "px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition shadow-sm select-none ";
+
+      if (state === "saving") {
+        badge.classList.add("bg-blue-950/60", "text-blue-400", "border", "border-blue-800/60");
+        icon.className = "fa-solid fa-circle-notch fa-spin text-[11px]";
+      } else if (state === "updating") {
+        badge.classList.add("bg-amber-950/60", "text-amber-400", "border", "border-amber-800/60");
+        icon.className = "fa-solid fa-bolt-lightning fa-bounce text-[11px]";
+      } else if (state === "editing") {
+        badge.classList.add("bg-gray-800", "text-gray-300", "border", "border-gray-700");
+        icon.className = "fa-solid fa-pencil text-[11px]";
+      } else if (state === "error") {
+        badge.classList.add("bg-red-950/60", "text-red-400", "border", "border-red-800/60", "cursor-pointer");
+        badge.onclick = () => executeAutoSave();
+        icon.className = "fa-solid fa-triangle-exclamation text-[11px]";
+      } else {
+        // saved / default
+        badge.classList.add("bg-emerald-950/60", "text-emerald-400", "border", "border-emerald-800/60");
+        icon.className = "fa-solid fa-cloud-check text-[11px]";
+        badge.onclick = null;
+      }
+      textEl.textContent = text || "Saved";
+    }
+
+    // -------------------------------------------------------------------------
     // Render Charge Limits
     // -------------------------------------------------------------------------
     function renderDaySliders() {
       const container = document.getElementById("days-container");
       container.innerHTML = "";
+      const today = getSydneyToday();
 
       DAYS.forEach(day => {
         const val = currentConfig.charge_schedule.limits[day] || 80;
         const isWeekend = day === "Saturday" || day === "Sunday";
+        const isToday = (day === today);
 
         const div = document.createElement("div");
-        div.className = "flex items-center justify-between gap-3 text-xs bg-gray-900/50 p-2.5 rounded-xl border border-gray-800/60";
+        div.className = `flex items-center justify-between gap-3 text-xs p-2.5 rounded-xl border transition ${
+          isToday
+            ? 'bg-amber-950/25 border-amber-500/50 shadow-sm ring-1 ring-amber-500/20'
+            : 'bg-gray-900/50 border-gray-800/60'
+        }`;
+
         div.innerHTML = `
-          <span class="w-20 font-medium ${isWeekend ? 'text-yellow-400' : 'text-gray-300'}">${day}</span>
+          <div class="w-24 flex items-center gap-1.5 flex-shrink-0">
+            <span class="font-medium ${isToday ? 'text-amber-300 font-semibold' : (isWeekend ? 'text-yellow-400' : 'text-gray-300')}">${day}</span>
+            ${isToday ? '<span class="px-1.5 py-0.5 text-[9px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/40 rounded tracking-wider">TODAY</span>' : ''}
+          </div>
           <input type="range" min="50" max="100" step="1" value="${val}"
-            oninput="onSliderChange('${day}', this.value)"
+            oninput="onSliderInput('${day}', this.value)"
+            onchange="onSliderCommit('${day}', this.value)"
             class="flex-1 h-1.5 bg-gray-700 rounded-lg cursor-pointer">
           <span id="badge-${day}" class="w-10 text-right font-mono font-bold ${val >= 90 ? 'text-yellow-400' : 'text-emerald-400'}">${val}%</span>
         `;
@@ -337,14 +400,35 @@
       });
     }
 
-    function onSliderChange(day, val) {
+    function onSliderInput(day, val) {
       currentConfig.charge_schedule.limits[day] = parseInt(val);
       const badge = document.getElementById(`badge-${day}`);
-      badge.textContent = `${val}%`;
-      badge.className = `w-10 text-right font-mono font-bold ${val >= 90 ? 'text-yellow-400' : 'text-emerald-400'}`;
+      if (badge) {
+        badge.textContent = `${val}%`;
+        badge.className = `w-10 text-right font-mono font-bold ${val >= 90 ? 'text-yellow-400' : 'text-emerald-400'}`;
+      }
+      setSyncStatus("editing", "Editing...");
+    }
+
+    function onSliderCommit(day, val) {
+      scheduleAutoSave(200);
+      const today = getSydneyToday();
+      if (day === today) {
+        checkAndDispatchTodayChargeLimit(val);
+      }
+    }
+
+    function onChargeTimeChange(val) {
+      if (val) {
+        currentConfig.charge_schedule.update_time = val;
+        scheduleAutoSave(300);
+      }
     }
 
     function applyPreset(type) {
+      const today = getSydneyToday();
+      const prevTodayVal = currentConfig.charge_schedule.limits[today];
+
       if (type === 'standard') {
         DAYS.forEach(d => currentConfig.charge_schedule.limits[d] = (d === 'Saturday' || d === 'Sunday') ? 90 : 80);
       } else if (type === 'commuter') {
@@ -352,11 +436,87 @@
       } else if (type === 'full') {
         DAYS.forEach(d => currentConfig.charge_schedule.limits[d] = 100);
       }
+
       renderDaySliders();
+      scheduleAutoSave(200);
+
+      const newTodayVal = currentConfig.charge_schedule.limits[today];
+      if (prevTodayVal !== newTodayVal) {
+        checkAndDispatchTodayChargeLimit(newTodayVal);
+      }
     }
 
     // -------------------------------------------------------------------------
-    // Render Multiple Climate Schedules with Smart Hot-Cabin Temperature
+    // Immediate Vehicle Update when Today's Charge Limit Changes
+    // -------------------------------------------------------------------------
+    async function checkAndDispatchTodayChargeLimit(newLimit) {
+      const today = getSydneyToday();
+      const todayLimit = parseInt(newLimit);
+
+      if (lastDispatchedTodayLimit === todayLimit) return;
+
+      if (isDispatchingToday) {
+        pendingTodayDispatchLimit = todayLimit;
+        return;
+      }
+
+      isDispatchingToday = true;
+      lastDispatchedTodayLimit = todayLimit;
+
+      showStatus(`⚡ Today is ${today}: Saving schedule & sending immediate update to ${todayLimit}% on The Whale 🐋...`, "info");
+      setSyncStatus("updating", `Car setting: ${todayLimit}%...`);
+
+      // 1. First ensure the auto-save commits to GitHub so the runner checks out the new limit
+      await executeAutoSave();
+
+      // 2. Dispatch the GitHub Actions workflow immediately with force=true
+      try {
+        const token = getAuthToken();
+        if (!token) {
+          showStatus("Cannot dispatch to vehicle: GitHub token missing.", "error");
+          setSyncStatus("error", "No token");
+          return;
+        }
+
+        const res = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/actions/workflows/schedule.yml/dispatches`, {
+          method: "POST",
+          headers: {
+            "Authorization": `token ${token}`,
+            "Accept": "application/vnd.github+json",
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            ref: "main",
+            inputs: {
+              action: "charge_limit",
+              dry_run: false,
+              force: true
+            }
+          })
+        });
+
+        if (res.ok) {
+          showStatus(`✓ Immediate update dispatched! The Whale 🐋 is setting charge limit to ${todayLimit}% now.`, "success");
+          setSyncStatus("saved", "Saved ✓");
+        } else {
+          showStatus(`Schedule saved, but vehicle dispatch failed (${res.status}).`, "error");
+          setSyncStatus("error", "Dispatch failed");
+        }
+      } catch (e) {
+        showStatus(`Dispatch error: ${e.message}`, "error");
+        setSyncStatus("error", "Dispatch error");
+      } finally {
+        isDispatchingToday = false;
+        if (pendingTodayDispatchLimit !== null && pendingTodayDispatchLimit !== lastDispatchedTodayLimit) {
+          const nextVal = pendingTodayDispatchLimit;
+          pendingTodayDispatchLimit = null;
+          checkAndDispatchTodayChargeLimit(nextVal);
+        }
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // Render Multiple Climate Schedules with Multi-Tier Heat Rules
     // -------------------------------------------------------------------------
     function renderClimateSchedules() {
       const container = document.getElementById("climate-schedules-list");
@@ -373,13 +533,23 @@
 
       currentConfig.climate_schedules.forEach((sched, index) => {
         const isSmart = sched.temp_mode !== "fixed";
+        if (!Array.isArray(sched.temp_rules)) {
+          sched.temp_rules = [];
+          if (sched.hot_threshold_c !== undefined || sched.hot_target_temp_c !== undefined) {
+            sched.temp_rules.push({
+              threshold_c: sched.hot_threshold_c || 28.0,
+              target_temp_c: sched.hot_target_temp_c || 18.5
+            });
+          }
+        }
+
         const card = document.createElement("div");
         card.className = "bg-gray-900/85 border border-gray-800 rounded-xl p-4 space-y-3.5 transition";
         card.id = `sched-card-${sched.id}`;
 
         let daysHtml = "";
         DAYS.forEach(d => {
-          const isActive = sched.days.includes(d);
+          const isActive = sched.days && sched.days.includes(d);
           daysHtml += `
             <button type="button" onclick="toggleScheduleDay(${index}, '${d}')"
               class="day-pill ${isActive ? 'active' : ''} py-1.5 rounded-lg border border-gray-700 text-xs text-center text-gray-300 font-medium transition">
@@ -392,7 +562,7 @@
           <div class="flex items-center justify-between border-b border-gray-800/80 pb-2.5">
             <div class="flex items-center gap-2">
               <i class="fa-solid fa-stopwatch text-blue-400 text-xs"></i>
-              <input type="text" value="${escapeHtml(sched.name)}" onchange="updateScheduleName(${index}, this.value)"
+              <input type="text" value="${escapeHtml(sched.name)}" oninput="updateScheduleName(${index}, this.value)"
                 class="bg-transparent text-sm font-semibold text-white focus:outline-none focus:border-b border-gray-600 px-1 w-44" placeholder="Timer Name">
             </div>
             <div class="flex items-center gap-3">
@@ -400,7 +570,7 @@
                 <input type="checkbox" ${sched.enabled ? 'checked' : ''} onchange="toggleScheduleActive(${index}, this.checked)" class="sr-only peer">
                 <div class="w-8 h-4 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-blue-600"></div>
               </label>
-              <button onclick="deleteClimateSchedule(${index})" class="text-gray-500 hover:text-red-400 text-xs p-1" title="Delete timer">
+              <button onclick="deleteClimateSchedule(${index})" class="text-gray-500 hover:text-red-400 text-xs p-1 transition" title="Delete timer">
                 <i class="fa-regular fa-trash-can"></i>
               </button>
             </div>
@@ -420,8 +590,8 @@
             </div>
           </div>
 
-          <!-- Temperature Control: Smart vs Fixed -->
-          <div class="bg-gray-800/50 border border-gray-700/50 rounded-xl p-3 space-y-2.5">
+          <!-- Temperature Control: Smart Multi-Threshold vs Fixed -->
+          <div class="bg-gray-800/50 border border-gray-700/50 rounded-xl p-3 space-y-3">
             <div class="flex items-center justify-between text-xs">
               <span class="text-gray-300 font-medium">Temperature Mode</span>
               <div class="flex bg-gray-900 rounded-lg p-0.5 border border-gray-700 text-[11px]">
@@ -436,51 +606,73 @@
               </div>
             </div>
 
-            <!-- Smart Heat Configuration -->
+            <!-- Normal Target Temp -->
+            <div class="flex items-center justify-between pt-1 border-t border-gray-700/60 text-xs">
+              <div>
+                <span class="text-gray-300 font-medium block">${isSmart ? 'Normal Target Temp' : 'Target Temp'}</span>
+                <span class="text-[10px] text-gray-400">${isSmart ? 'Used when cabin is below all heat thresholds' : 'Constant cooling target'}</span>
+              </div>
+              <div class="flex items-center space-x-1.5">
+                <button onclick="adjustScheduleTemp(${index}, 'target_temp_c', -0.5)" class="w-6 h-6 rounded bg-gray-700 hover:bg-gray-600 text-gray-200 text-xs font-bold flex items-center justify-center">-</button>
+                <span class="font-mono font-semibold text-white w-14 text-center">${(sched.target_temp_c || 21.0).toFixed(1)}°C</span>
+                <button onclick="adjustScheduleTemp(${index}, 'target_temp_c', 0.5)" class="w-6 h-6 rounded bg-gray-700 hover:bg-gray-600 text-gray-200 text-xs font-bold flex items-center justify-center">+</button>
+              </div>
+            </div>
+
+            <!-- Smart Heat Multi-Tier Rules -->
             ${isSmart ? `
-              <div class="space-y-2 pt-1 border-t border-gray-700/60 text-xs">
+              <div class="space-y-2.5 pt-2 border-t border-gray-700/60">
                 <div class="flex items-center justify-between">
-                  <span class="text-gray-400 text-[11px]">Normal Target Temp:</span>
-                  <div class="flex items-center space-x-1.5">
-                    <button onclick="adjustScheduleTemp(${index}, 'target_temp_c', -0.5)" class="w-5 h-5 rounded bg-gray-700 text-gray-200 text-xs flex items-center justify-center">-</button>
-                    <span class="font-mono font-semibold text-white w-12 text-center">${(sched.target_temp_c || 21.0).toFixed(1)}°C</span>
-                    <button onclick="adjustScheduleTemp(${index}, 'target_temp_c', 0.5)" class="w-5 h-5 rounded bg-gray-700 text-gray-200 text-xs flex items-center justify-center">+</button>
-                  </div>
+                  <span class="text-[11px] font-semibold text-amber-300 flex items-center gap-1.5">
+                    <i class="fa-solid fa-temperature-arrow-up text-amber-400"></i> Cabin Heat Threshold Rules (${sched.temp_rules.length})
+                  </span>
+                  <button onclick="addTempRule(${index})" class="px-2 py-1 rounded-md bg-amber-600/20 hover:bg-amber-600/40 text-amber-300 border border-amber-500/40 text-[10px] font-semibold flex items-center gap-1 transition active:scale-95">
+                    <i class="fa-solid fa-plus text-[9px]"></i> Add Rule
+                  </button>
                 </div>
 
-                <div class="bg-amber-950/30 border border-amber-800/40 rounded-lg p-2.5 space-y-1.5">
-                  <div class="flex items-center justify-between">
-                    <span class="text-amber-300 text-[11px] font-medium flex items-center gap-1.5">
-                      <i class="fa-solid fa-temperature-arrow-up text-amber-400"></i> If Cabin Is Hot (≥):
-                    </span>
-                    <div class="flex items-center space-x-1.5">
-                      <button onclick="adjustScheduleTemp(${index}, 'hot_threshold_c', -1.0)" class="w-5 h-5 rounded bg-gray-800 text-amber-200 text-xs flex items-center justify-center">-</button>
-                      <span class="font-mono font-bold text-amber-300 w-12 text-center">${(sched.hot_threshold_c || 28.0).toFixed(0)}°C</span>
-                      <button onclick="adjustScheduleTemp(${index}, 'hot_threshold_c', 1.0)" class="w-5 h-5 rounded bg-gray-800 text-amber-200 text-xs flex items-center justify-center">+</button>
-                    </div>
+                ${sched.temp_rules.length === 0 ? `
+                  <div class="p-3 text-center text-xs text-gray-500 border border-dashed border-gray-800 rounded-xl">
+                    No heat thresholds set. AC will always cool to ${(sched.target_temp_c || 21.0).toFixed(1)}°C. Click "+ Add Rule" to set extra cold cooling for hot days!
                   </div>
-                  <div class="flex items-center justify-between">
-                    <span class="text-cyan-300 text-[11px] font-medium flex items-center gap-1.5">
-                      <i class="fa-solid fa-snowflake text-cyan-400"></i> Automatically Cool To:
-                    </span>
-                    <div class="flex items-center space-x-1.5">
-                      <button onclick="adjustScheduleTemp(${index}, 'hot_target_temp_c', -0.5)" class="w-5 h-5 rounded bg-gray-800 text-cyan-200 text-xs flex items-center justify-center">-</button>
-                      <span class="font-mono font-bold text-cyan-300 w-12 text-center">${(sched.hot_target_temp_c || 18.5).toFixed(1)}°C</span>
-                      <button onclick="adjustScheduleTemp(${index}, 'hot_target_temp_c', 0.5)" class="w-5 h-5 rounded bg-gray-800 text-cyan-200 text-xs flex items-center justify-center">+</button>
-                    </div>
+                ` : `
+                  <div class="space-y-2">
+                    ${sched.temp_rules.map((rule, rIdx) => `
+                      <div class="bg-gray-950/70 border border-gray-800 rounded-xl p-2.5 space-y-2">
+                        <div class="flex items-center justify-between text-[11px] pb-1 border-b border-gray-800/80">
+                          <span class="text-amber-400 font-semibold flex items-center gap-1.5">
+                            <i class="fa-solid fa-fire text-amber-400 text-[10px]"></i> Rule #${rIdx + 1}
+                          </span>
+                          <button onclick="deleteTempRule(${index}, ${rIdx})" class="text-gray-500 hover:text-red-400 text-xs p-1" title="Delete rule">
+                            <i class="fa-regular fa-trash-can"></i>
+                          </button>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                          <!-- Threshold Trigger -->
+                          <div class="bg-amber-950/20 border border-amber-900/30 rounded-lg p-2">
+                            <span class="text-[10px] text-amber-400/90 block mb-1">If Cabin Temp ≥</span>
+                            <div class="flex items-center justify-between">
+                              <button onclick="adjustRuleTemp(${index}, ${rIdx}, 'threshold_c', -1.0)" class="w-6 h-6 rounded bg-gray-800 hover:bg-gray-700 text-amber-200 text-xs font-bold flex items-center justify-center">-</button>
+                              <span class="font-mono font-bold text-amber-300 text-sm">${(rule.threshold_c || 28.0).toFixed(0)}°C</span>
+                              <button onclick="adjustRuleTemp(${index}, ${rIdx}, 'threshold_c', 1.0)" class="w-6 h-6 rounded bg-gray-800 hover:bg-gray-700 text-amber-200 text-xs font-bold flex items-center justify-center">+</button>
+                            </div>
+                          </div>
+                          <!-- Target Cooling -->
+                          <div class="bg-cyan-950/20 border border-cyan-900/30 rounded-lg p-2">
+                            <span class="text-[10px] text-cyan-400/90 block mb-1">Cool Cabin To</span>
+                            <div class="flex items-center justify-between">
+                              <button onclick="adjustRuleTemp(${index}, ${rIdx}, 'target_temp_c', -0.5)" class="w-6 h-6 rounded bg-gray-800 hover:bg-gray-700 text-cyan-200 text-xs font-bold flex items-center justify-center">-</button>
+                              <span class="font-mono font-bold text-cyan-300 text-sm">${(rule.target_temp_c || 18.5).toFixed(1)}°C</span>
+                              <button onclick="adjustRuleTemp(${index}, ${rIdx}, 'target_temp_c', 0.5)" class="w-6 h-6 rounded bg-gray-800 hover:bg-gray-700 text-cyan-200 text-xs font-bold flex items-center justify-center">+</button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    `).join("")}
                   </div>
-                </div>
+                `}
               </div>
-            ` : `
-              <div class="flex items-center justify-between pt-1 border-t border-gray-700/60 text-xs">
-                <span class="text-gray-400">Target Temp:</span>
-                <div class="flex items-center space-x-1.5">
-                  <button onclick="adjustScheduleTemp(${index}, 'target_temp_c', -0.5)" class="w-6 h-6 rounded bg-gray-700 text-gray-200 text-xs flex items-center justify-center">-</button>
-                  <span class="font-mono font-semibold text-white w-14 text-center">${(sched.target_temp_c || 21.0).toFixed(1)}°C</span>
-                  <button onclick="adjustScheduleTemp(${index}, 'target_temp_c', 0.5)" class="w-6 h-6 rounded bg-gray-700 text-gray-200 text-xs flex items-center justify-center">+</button>
-                </div>
-              </div>
-            `}
+            ` : ''}
           </div>
 
           <!-- Active Days Selection -->
@@ -505,32 +697,39 @@
         days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
         temp_mode: "smart",
         target_temp_c: 21.0,
-        hot_threshold_c: 28.0,
-        hot_target_temp_c: 18.0
+        temp_rules: [
+          { threshold_c: 28.0, target_temp_c: 19.0 },
+          { threshold_c: 34.0, target_temp_c: 17.5 }
+        ]
       });
       renderClimateSchedules();
+      scheduleAutoSave(200);
     }
 
     function deleteClimateSchedule(index) {
       currentConfig.climate_schedules.splice(index, 1);
       renderClimateSchedules();
+      scheduleAutoSave(200);
     }
 
     function updateScheduleName(index, val) {
       if (currentConfig.climate_schedules[index]) {
         currentConfig.climate_schedules[index].name = val.trim() || "Timer";
+        scheduleAutoSave(600);
       }
     }
 
     function updateScheduleTime(index, val) {
       if (currentConfig.climate_schedules[index] && val) {
         currentConfig.climate_schedules[index].time = val;
+        scheduleAutoSave(300);
       }
     }
 
     function toggleScheduleActive(index, isChecked) {
       if (currentConfig.climate_schedules[index]) {
         currentConfig.climate_schedules[index].enabled = isChecked;
+        scheduleAutoSave(200);
       }
     }
 
@@ -538,12 +737,14 @@
       if (currentConfig.climate_schedules[index]) {
         currentConfig.climate_schedules[index].temp_mode = mode;
         renderClimateSchedules();
+        scheduleAutoSave(200);
       }
     }
 
     function toggleScheduleDay(index, day) {
       const sched = currentConfig.climate_schedules[index];
       if (!sched) return;
+      if (!Array.isArray(sched.days)) sched.days = [];
       const pos = sched.days.indexOf(day);
       if (pos > -1) {
         sched.days.splice(pos, 1);
@@ -551,16 +752,74 @@
         sched.days.push(day);
       }
       renderClimateSchedules();
+      scheduleAutoSave(200);
     }
 
     function adjustScheduleTemp(index, field, delta) {
       const sched = currentConfig.climate_schedules[index];
       if (!sched) return;
-      let cur = sched[field] !== undefined ? sched[field] : (field === 'hot_threshold_c' ? 28.0 : 21.0);
+      let cur = sched[field] !== undefined ? sched[field] : 21.0;
       cur += delta;
-      cur = Math.max(16.0, Math.min(35.0, cur));
+      cur = Math.max(16.0, Math.min(30.0, cur));
       sched[field] = parseFloat(cur.toFixed(1));
       renderClimateSchedules();
+      scheduleAutoSave(300);
+    }
+
+    function addTempRule(schedIndex) {
+      const sched = currentConfig.climate_schedules[schedIndex];
+      if (!sched) return;
+      if (!Array.isArray(sched.temp_rules)) sched.temp_rules = [];
+
+      let nextThreshold = 28.0;
+      let nextTarget = 18.5;
+
+      if (sched.temp_rules.length > 0) {
+        const maxThresh = Math.max(...sched.temp_rules.map(r => r.threshold_c || 28));
+        const minTarget = Math.min(...sched.temp_rules.map(r => r.target_temp_c || 19));
+        nextThreshold = Math.min(45.0, maxThresh + 4.0);
+        nextTarget = Math.max(16.0, minTarget - 1.5);
+      }
+
+      sched.temp_rules.push({
+        threshold_c: parseFloat(nextThreshold.toFixed(1)),
+        target_temp_c: parseFloat(nextTarget.toFixed(1))
+      });
+
+      // Keep sorted descending by threshold
+      sched.temp_rules.sort((a, b) => (b.threshold_c || 0) - (a.threshold_c || 0));
+
+      renderClimateSchedules();
+      scheduleAutoSave(200);
+    }
+
+    function deleteTempRule(schedIndex, ruleIndex) {
+      const sched = currentConfig.climate_schedules[schedIndex];
+      if (!sched || !sched.temp_rules) return;
+      sched.temp_rules.splice(ruleIndex, 1);
+      renderClimateSchedules();
+      scheduleAutoSave(200);
+    }
+
+    function adjustRuleTemp(schedIndex, ruleIndex, field, delta) {
+      const sched = currentConfig.climate_schedules[schedIndex];
+      if (!sched || !sched.temp_rules || !sched.temp_rules[ruleIndex]) return;
+      const rule = sched.temp_rules[ruleIndex];
+
+      let cur = rule[field] !== undefined ? rule[field] : (field === 'threshold_c' ? 28.0 : 18.5);
+      cur += delta;
+      if (field === 'threshold_c') {
+        cur = Math.max(20.0, Math.min(50.0, cur));
+      } else {
+        cur = Math.max(16.0, Math.min(26.0, cur));
+      }
+      rule[field] = parseFloat(cur.toFixed(1));
+
+      // Keep sorted descending by threshold
+      sched.temp_rules.sort((a, b) => (b.threshold_c || 0) - (a.threshold_c || 0));
+
+      renderClimateSchedules();
+      scheduleAutoSave(300);
     }
 
     function escapeHtml(str) {
@@ -568,68 +827,35 @@
     }
 
     // -------------------------------------------------------------------------
-    // Cloud Sync (GitHub API)
+    // Cloud Auto-Sync Engine (Debounced GitHub API Commits)
     // -------------------------------------------------------------------------
-    async function loadConfigFromGitHub() {
-      const token = getAuthToken();
-      if (!token) return;
-
-      try {
-        const res = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${CONFIG_PATH}`, {
-          headers: {
-            "Authorization": `token ${token}`,
-            "Accept": "application/vnd.github+json"
-          }
-        });
-
-        if (res.ok) {
-          const data = await res.json();
-          fileSha = data.sha;
-          const content = decodeURIComponent(escape(atob(data.content)));
-          const parsed = JSON.parse(content);
-
-          if (parsed.charge_schedule) currentConfig.charge_schedule = parsed.charge_schedule;
-          if (parsed.climate_schedules) {
-            currentConfig.climate_schedules = parsed.climate_schedules;
-          } else if (parsed.climate_schedule) {
-            currentConfig.climate_schedules = [{
-              id: "legacy",
-              name: "Scheduled Preconditioning",
-              enabled: parsed.climate_schedule.enabled !== false,
-              time: parsed.climate_schedule.start_time || "17:05",
-              days: parsed.climate_schedule.days || ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-              temp_mode: "smart",
-              target_temp_c: parsed.climate_schedule.target_temp_c || 21.0,
-              hot_threshold_c: 28.0,
-              hot_target_temp_c: 18.5
-            }];
-          }
-
-          document.getElementById("charge-time").value = currentConfig.charge_schedule.update_time || "20:00";
-          renderDaySliders();
-          renderClimateSchedules();
-          showStatus("Synced latest schedule from cloud", "success");
-        }
-      } catch (e) {
-        console.error("Failed to load config from GitHub:", e);
+    function scheduleAutoSave(delayMs = 600) {
+      setSyncStatus("editing", "Editing...");
+      if (autoSaveTimer) {
+        clearTimeout(autoSaveTimer);
       }
+      autoSaveTimer = setTimeout(() => {
+        executeAutoSave();
+      }, delayMs);
     }
 
-    async function saveConfiguration() {
-      const token = getAuthToken();
-      if (!token) {
-        openAuthModal();
+    async function executeAutoSave() {
+      if (isSaving) {
+        pendingSave = true;
         return;
       }
 
-      currentConfig.charge_schedule.update_time = document.getElementById("charge-time").value;
+      const token = getAuthToken();
+      if (!token) {
+        setSyncStatus("error", "No token (not saved)");
+        return;
+      }
 
-      const btn = document.getElementById("btn-save");
-      const originalText = btn.innerHTML;
-      btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Syncing with Cloud...`;
-      btn.disabled = true;
+      isSaving = true;
+      setSyncStatus("saving", "Saving...");
 
       try {
+        // Fetch current SHA if missing
         if (!fileSha) {
           const getRes = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${CONFIG_PATH}`, {
             headers: { "Authorization": `token ${token}`, "Accept": "application/vnd.github+json" }
@@ -640,11 +866,19 @@
           }
         }
 
+        // Synchronize legacy hot_threshold fields for full backwards-compatibility
+        currentConfig.climate_schedules.forEach(sched => {
+          if (sched.temp_rules && sched.temp_rules.length > 0) {
+            sched.hot_threshold_c = sched.temp_rules[0].threshold_c;
+            sched.hot_target_temp_c = sched.temp_rules[0].target_temp_c;
+          }
+        });
+
         const jsonString = JSON.stringify(currentConfig, null, 2);
         const encodedContent = btoa(unescape(encodeURIComponent(jsonString)));
 
         const payload = {
-          message: "Update multi-timer schedule and smart temperature configuration",
+          message: "Auto-save multi-timer schedule and smart temperature thresholds",
           content: encodedContent,
           sha: fileSha,
           committer: {
@@ -670,28 +904,109 @@
         if (putRes.ok) {
           const resData = await putRes.json();
           fileSha = resData.content.sha;
-          
-          // Also update GitHub workflow cron schedule to match user's custom times
-          syncWorkflowCronTriggers(token);
+          setSyncStatus("saved", "Saved ✓");
 
-          showStatus("Schedule successfully updated and synced!", "success");
+          // Sync workflow cron triggers if times were adjusted
+          syncWorkflowCronTriggers(token);
+        } else if (putRes.status === 409) {
+          // Conflict: refresh file SHA and retry
+          fileSha = "";
+          pendingSave = true;
+          setSyncStatus("saving", "Resolving conflict...");
         } else {
           const err = await putRes.json();
-          showStatus(`Failed to save: ${err.message || 'Error'}`, "error");
+          setSyncStatus("error", "Error saving");
+          showStatus(`Auto-save error: ${err.message || 'Check connection'}`, "error");
         }
       } catch (e) {
-        showStatus(`Error saving: ${e.message}`, "error");
+        console.error("Auto-save exception:", e);
+        setSyncStatus("error", "Error saving");
       } finally {
-        btn.innerHTML = originalText;
-        btn.disabled = false;
+        isSaving = false;
+        if (pendingSave) {
+          pendingSave = false;
+          executeAutoSave();
+        }
       }
     }
 
-    // Convert Sydney local time (AEST UTC+10) to UTC cron expressions
+    async function loadConfigFromGitHub() {
+      const token = getAuthToken();
+      if (!token) return;
+
+      try {
+        const res = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${CONFIG_PATH}`, {
+          headers: {
+            "Authorization": `token ${token}`,
+            "Accept": "application/vnd.github+json"
+          }
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          fileSha = data.sha;
+          const content = decodeURIComponent(escape(atob(data.content)));
+          const parsed = JSON.parse(content);
+
+          if (parsed.charge_schedule) currentConfig.charge_schedule = parsed.charge_schedule;
+          if (parsed.climate_schedules) {
+            currentConfig.climate_schedules = parsed.climate_schedules.map(sched => {
+              let rules = Array.isArray(sched.temp_rules) ? sched.temp_rules : [];
+              if (rules.length === 0 && (sched.hot_threshold_c !== undefined || sched.hot_target_temp_c !== undefined)) {
+                rules = [{
+                  threshold_c: sched.hot_threshold_c !== undefined ? sched.hot_threshold_c : 28.0,
+                  target_temp_c: sched.hot_target_temp_c !== undefined ? sched.hot_target_temp_c : 18.5
+                }];
+              }
+              return {
+                ...sched,
+                temp_rules: rules
+              };
+            });
+          } else if (parsed.climate_schedule) {
+            currentConfig.climate_schedules = [{
+              id: "legacy",
+              name: "Scheduled Preconditioning",
+              enabled: parsed.climate_schedule.enabled !== false,
+              time: parsed.climate_schedule.start_time || "17:05",
+              days: parsed.climate_schedule.days || ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+              temp_mode: "smart",
+              target_temp_c: parsed.climate_schedule.target_temp_c || 21.0,
+              temp_rules: [{ threshold_c: 28.0, target_temp_c: 18.5 }]
+            }];
+          }
+
+          // Initialize today's dispatched value so opening the page won't re-trigger dispatch
+          const today = getSydneyToday();
+          if (currentConfig.charge_schedule && currentConfig.charge_schedule.limits) {
+            lastDispatchedTodayLimit = currentConfig.charge_schedule.limits[today];
+          }
+
+          document.getElementById("charge-time").value = currentConfig.charge_schedule.update_time || "20:00";
+          renderDaySliders();
+          renderClimateSchedules();
+          setSyncStatus("saved", "Saved ✓");
+          showStatus("Synced latest schedule from cloud", "success");
+        }
+      } catch (e) {
+        console.error("Failed to load config from GitHub:", e);
+      }
+    }
+
+    // Convert Sydney local time to UTC cron expression (dynamic timezone offset support)
     function localTimeToUtcParts(timeStr) {
       const [h, m] = timeStr.split(":").map(Number);
-      let utcH = h - 10; // Sydney AEST UTC+10
+      let diffHours = 10;
+      try {
+        const sydneyDate = new Date(new Date().toLocaleString("en-US", { timeZone: "Australia/Sydney" }));
+        const utcDate = new Date(new Date().toLocaleString("en-US", { timeZone: "UTC" }));
+        diffHours = Math.round((sydneyDate - utcDate) / (1000 * 60 * 60));
+      } catch (e) {
+        diffHours = 10;
+      }
+      let utcH = h - diffHours;
       if (utcH < 0) utcH += 24;
+      if (utcH >= 24) utcH -= 24;
       return { minute: m, hour: utcH };
     }
 
@@ -703,7 +1018,7 @@
         if (!res.ok) return;
         const data = await res.json();
         workflowSha = data.sha;
-        let content = decodeURIComponent(escape(atob(data.content)));
+        const originalContent = decodeURIComponent(escape(atob(data.content)));
 
         const chargeUtc = localTimeToUtcParts(currentConfig.charge_schedule.update_time || "20:00");
         let cronList = [
@@ -716,11 +1031,15 @@
         });
 
         const newScheduleBlock = "  schedule:\n" + cronList.join("\n");
-        content = content.replace(/  schedule:[\s\S]*?(?=  workflow_dispatch:)/, newScheduleBlock + "\n");
+        const updatedContent = originalContent.replace(/  schedule:[\s\S]*?(?=  workflow_dispatch:)/, newScheduleBlock + "\n");
+
+        if (updatedContent === originalContent) {
+          return; // No cron schedule adjustments needed
+        }
 
         const updatePayload = {
-          message: "Sync workflow cron triggers with custom schedule times",
-          content: btoa(unescape(encodeURIComponent(content))),
+          message: "Sync workflow cron triggers with updated schedule times",
+          content: btoa(unescape(encodeURIComponent(updatedContent))),
           sha: workflowSha,
           committer: {
             name: "Oliver Fisher",
@@ -754,7 +1073,7 @@
         return;
       }
 
-      showStatus(`Triggering ${action === 'charge_limit' ? 'Charge Limit Update' : 'AC Preconditioning'}...`, "info");
+      showStatus(`Dispatching ${action === 'charge_limit' ? 'Charge Limit Update' : 'AC Preconditioning'} to The Whale 🐋...`, "info");
 
       try {
         const res = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/actions/workflows/schedule.yml/dispatches`, {
@@ -766,7 +1085,7 @@
           },
           body: JSON.stringify({
             ref: "main",
-            inputs: { action: action, dry_run: false }
+            inputs: { action: action, dry_run: false, force: true }
           })
         });
 
